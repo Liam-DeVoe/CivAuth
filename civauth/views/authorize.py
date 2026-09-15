@@ -92,11 +92,6 @@ def pending() -> dict | None:
     return fresh(req)
 
 
-def login_flow(req: dict) -> bool:
-    params = req["params"]
-    return params.get("client_id") is not None or params.get("return_to") is not None
-
-
 def fresh(req: dict | None) -> dict | None:
     if req is None or req["created_at"] + constants.REQUEST_TTL <= civ().now():
         return None

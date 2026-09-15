@@ -1,7 +1,7 @@
 from flask import Blueprint, Response, request
 
 from civauth import civ, redirect_response
-from civauth.views.authorize import decide, login_flow, login_page, pending, start_login
+from civauth.views.authorize import decide, login_page, pending, start_login
 from civauth.views.join import verify_code
 from civauth.views.password import verify_password
 
@@ -12,7 +12,10 @@ bp = Blueprint("login", __name__)
 def page() -> Response:
     auth = civ()
     req = pending()
-    if req is None or not login_flow(req):
+    if req is not None and req["params"].get("return_to") is None:
+        auth.store.delete_request(req["id"])
+        req = None
+    if req is None:
         if auth.session() is not None:
             return redirect_response(auth.config.url("/account"))
         return start_login("/account")
