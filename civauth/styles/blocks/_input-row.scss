@@ -1,0 +1,36 @@
+.input-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.3rem;
+
+  &__input {
+    flex: 1;
+    box-sizing: border-box;
+    padding: 0.4rem;
+    border: 1px solid $field-border;
+    border-radius: 2px;
+    font: inherit;
+  }
+
+  &__value {
+    flex: 1;
+    margin-top: 0;
+    font-size: 1.05rem;
+    user-select: all;
+  }
+
+  .button--small {
+    margin-top: 0;
+  }
+
+  /* The join page's row: the button matches the address block's height. */
+  &--address {
+    align-items: stretch;
+
+    .button {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
+}

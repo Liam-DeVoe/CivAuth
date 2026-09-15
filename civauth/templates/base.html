@@ -1,0 +1,106 @@
+{% macro warning(content) -%}
+  <div class="message message--warning" role="alert">
+    <svg class="message__icon" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 1 1 18h18zm0 3.9L16.2 16H3.8zM9 8h2v4H9zm0 5h2v2H9z" />
+    </svg>
+    <div class="message__body">{{ content|safe }}</div>
+  </div>
+{%- endmacro -%}
+{% macro notice(content) -%}
+  <div class="message message--notice">
+    <svg class="message__icon" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 0a10 10 0 1 0 10 10A10 10 0 0 0 10 0zM9 5h2v2H9zm0 4h2v6H9z" />
+    </svg>
+    <div class="message__body">{{ content|safe }}</div>
+  </div>
+{%- endmacro -%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <meta name="color-scheme" content="light dark">
+    <title>
+      {% block title %}{% endblock %}
+    </title>
+    <script nonce="{{ nonce }}">
+      try {
+        var theme = localStorage.getItem("theme");
+        if (theme === "dark" || theme === "light") document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="{{ stylesheet }}">
+  </head>
+  <body class="{% block body_class %}{% endblock %}">
+    {% block topbar %}
+    <div class="topbar">
+      <button type="button" class="theme-toggle" aria-label="Switch to dark theme">
+        <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M8 2a8 8 0 1 0 10 10A6.5 6.5 0 0 1 8 2z" />
+        </svg>
+        <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M10 6a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM9 0h2v3H9zm0 17h2v3H9zM0 9h3v2H0zm17 0h3v2h-3zM2.5 3.5l1-1 2.8 2.8-1 1zm15 0-1-1-2.8 2.8 1 1zM2.5 16.5l1 1 2.8-2.8-1-1zm15 0-1 1-2.8-2.8 1-1z" />
+        </svg>
+      </button>
+      {% if account %}
+        <details class="menu">
+          <summary class="menu__toggle">
+            <img class="menu__avatar"
+                 src="{{ url('/avatar/' ~ account.uuid ~ '.png') }}"
+                 width="28"
+                 height="28"
+                 alt=""><span class="menu__name">{{ account.name }}</span><svg class="menu__caret" viewBox="0 0 10 10" aria-hidden="true">
+              <path d="M1 3l4 4 4-4z" />
+            </svg>
+          </summary>
+          <div class="menu__list">
+            <a class="menu__item" href="{{ url('/account') }}">Account</a>
+            <a class="menu__item" href="{{ url('/apps') }}">OAuth apps</a>
+            <form method="post" action="{{ url('/signout') }}">
+              <input type="hidden"
+                     name="csrf"
+                     value="{{ account.csrf }}"><button type="submit"
+        class="menu__item">Sign out</button>
+            </form>
+          </div>
+        </details>
+      {% endif %}
+    </div>
+    {% endblock %}
+    {% block main %}
+      <div class="page">
+        {% block body %}{% endblock %}
+      </div>
+    {% endblock %}
+    <script nonce="{{ nonce }}">
+      document.addEventListener("click", function (event) {
+        var open = document.querySelectorAll("details.menu[open], details.dropdown__more[open]");
+        for (var i = 0; i < open.length; i++) {
+          if (!open[i].contains(event.target)) open[i].removeAttribute("open");
+        }
+      });
+    </script>
+    <script nonce="{{ nonce }}">
+      (function () {
+        var root = document.documentElement;
+        var toggle = document.querySelector(".theme-toggle");
+        function current() {
+          var set = root.getAttribute("data-theme");
+          if (set === "dark" || set === "light") return set;
+          return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        function label() {
+          toggle.setAttribute("aria-label", "Switch to " + (current() === "dark" ? "light" : "dark") + " theme");
+        }
+        toggle.addEventListener("click", function () {
+          var next = current() === "dark" ? "light" : "dark";
+          root.setAttribute("data-theme", next);
+          try { localStorage.setItem("theme", next); } catch (e) {}
+          label();
+        });
+        label();
+      })();
+    </script>
+  </body>
+</html>

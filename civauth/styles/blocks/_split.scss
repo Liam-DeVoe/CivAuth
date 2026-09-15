@@ -1,0 +1,33 @@
+.split {
+  display: flex;
+  gap: 2rem;
+  margin-top: 0.8rem;
+
+  &__half {
+    flex: 1;
+
+    & + & {
+      padding-left: 2rem;
+      border-left: 1px solid $border;
+    }
+  }
+
+  &__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 40rem) {
+  .split {
+    display: block;
+  }
+
+  .split__half + .split__half {
+    margin-top: 1.4rem;
+    padding-top: 1.4rem;
+    padding-left: 0;
+    border-top: 1px solid $border;
+    border-left: 0;
+  }
+}

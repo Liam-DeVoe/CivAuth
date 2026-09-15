@@ -1,0 +1,23 @@
+.field {
+  display: block;
+  margin-top: 0.8rem;
+  font-weight: 700;
+
+  &__input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0.3rem;
+    padding: 0.4rem;
+    border: 1px solid $field-border;
+    border-radius: 2px;
+    font: inherit;
+    font-weight: normal;
+
+    &[readonly] {
+      background: $shade;
+      color: $muted;
+      cursor: default;
+    }
+  }
+}

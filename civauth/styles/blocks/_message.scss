@@ -1,0 +1,43 @@
+.message {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin: 0.8rem 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: 2px;
+
+  &__icon {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.15rem;
+  }
+
+  &__body .text {
+    margin: 0;
+
+    & + .text {
+      margin-top: 0.6rem;
+    }
+  }
+
+  &--warning {
+    background: $warning-bg;
+    border-color: $warning-border;
+
+    .message__icon {
+      fill: $warning-mark;
+    }
+  }
+
+  &--notice {
+    background: $tint;
+    border-color: $link;
+
+    .message__icon {
+      fill: $link;
+    }
+  }
+}

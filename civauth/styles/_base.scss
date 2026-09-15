@@ -1,0 +1,24 @@
+body {
+  padding: 2rem 1rem;
+  background: $page-bg;
+  color: $text;
+  font: 16px/1.5 $sans;
+}
+
+a {
+  color: $link;
+  text-decoration: underline;
+}
+
+table {
+  width: 100%;
+  margin: 0.8rem 0;
+}
+
+th,
+td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid $line;
+  text-align: left;
+  vertical-align: top;
+}

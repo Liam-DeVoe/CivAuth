@@ -1,0 +1,8 @@
+.page {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter);
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 4px;
+}

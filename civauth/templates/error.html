@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+  <div class="title">{{ title }}</div>
+  {%- if message %}
+    <div class="text text--error">{{ message }}</div>
+  {%- endif %}
+  {%- if extra %}
+    {{ extra|safe }}
+  {%- endif %}
+{% endblock %}

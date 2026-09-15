@@ -1,0 +1,8 @@
+.reveal {
+  display: block;
+  margin-top: 0.8rem;
+
+  &[open] .reveal__toggle {
+    margin-bottom: 0.4rem;
+  }
+}

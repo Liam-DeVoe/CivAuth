@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+  <div class="title">{{ title }}</div>
+  {% for error in errors %}
+    <div class="text text--error">{{ error }}</div>
+  {% endfor %}
+  <form method="post" action="{{ action }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    {% if editing %}<label class="field">Client id<input class="field__input"
+       type="text"
+       value="{{ client_id }}"
+       readonly></label>{% endif %}
+    <label class="field">
+      Name<input class="field__input"
+       type="text"
+       name="name"
+       value="{{ name }}"
+       maxlength="{{ max_name }}"
+       required>
+    </label>
+    <label class="field">Redirect URIs</label>
+    <div id="uris">
+      {%- for uri in redirect_uris %}
+        <div class="input-row">
+          <input class="input-row__input"
+                 type="text"
+                 name="redirect_uris[]"
+                 value="{{ uri }}"><button type="submit"
+        name="action"
+        value="remove:{{ loop.index0 }}"
+        formnovalidate
+        class="button button--plain button--small">Remove</button>
+        </div>
+      {%- endfor %}
+    </div><button type="submit"
+        name="action"
+        value="add"
+        formnovalidate
+        class="button button--plain button--small"
+        id="add-uri"
+        {% if redirect_uris|length >= max_uris %} hidden{% endif %}>Add</button>
+    <div class="actions">
+      <button type="submit" class="button">{{ "Save" if editing else "Register" }}</button><a class="button button--plain"
+   href="{{ apps_url }}">Cancel</a>
+    </div>
+  </form>
+  <script nonce="{{ nonce }}">
+(function () {
+	var list = document.getElementById('uris');
+	var add = document.getElementById('add-uri');
+	function refresh() { add.hidden = list.children.length >= {{ max_uris }}; }
+	add.addEventListener('click', function (e) {
+		e.preventDefault();
+		if (list.children.length >= {{ max_uris }}) { return; }
+		var row = list.firstElementChild.cloneNode(true);
+		row.querySelector('input').value = '';
+		list.appendChild(row);
+		row.querySelector('input').focus();
+		refresh();
+	});
+	list.addEventListener('click', function (e) {
+		var button = e.target.closest('button');
+		if (!button) { return; }
+		e.preventDefault();
+		if (list.children.length === 1) {
+			list.firstElementChild.querySelector('input').value = '';
+		} else {
+			button.parentNode.remove();
+		}
+		refresh();
+	});
+	refresh();
+})();
+  </script>
+  {% if editing %}
+    <div class="heading section-title">Manage</div>
+    <div class="actions">
+      <form method="post" action="{{ regenerate_url }}">
+        <input type="hidden"
+               name="csrf"
+               value="{{ csrf }}"><button type="submit"
+        class="button button--danger">Regenerate secret</button>
+      </form>
+      <form method="post" action="{{ delete_url }}">
+        <input type="hidden"
+               name="csrf"
+               value="{{ csrf }}"><button type="submit"
+        class="button button--danger">Delete app</button>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}

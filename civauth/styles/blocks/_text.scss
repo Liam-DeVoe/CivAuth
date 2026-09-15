@@ -1,0 +1,25 @@
+.text {
+  margin: 0.6rem 0;
+
+  &--error {
+    color: $danger;
+  }
+}
+
+.strong {
+  font-weight: 700;
+}
+
+.em {
+  font-style: italic;
+}
+
+.code {
+  font-family: $mono;
+  font-size: 0.95em;
+}
+
+.rule {
+  margin: 1.4rem 0 0.6rem;
+  border-top: 1px solid $line;
+}

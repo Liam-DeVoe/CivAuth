@@ -1,0 +1,10 @@
+.grid {
+  th,
+  td {
+    border: 1px solid $border;
+  }
+
+  th {
+    background: $line;
+  }
+}

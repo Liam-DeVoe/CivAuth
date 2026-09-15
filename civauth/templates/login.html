@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% from "base.html" import warning %}
+{% block title %}Log in{% endblock %}
+{% block body %}
+  {% set minecraft_warning %}
+    Logging in with Minecraft gives CivAuth certain temporary permissions on your account.
+    <a href="{{ url('/permissions') }}">Read more about the different authentication methods.</a>
+  {% endset %}
+  <div class="title">Log in</div>
+  <div class="split">
+    <div class="split__half">
+      <div class="split__title">New account</div>
+      <div class="text">Join CivAuth's Minecraft server to receive a verification code.</div>
+      <div class="input-row input-row--address">
+        <span class="secret input-row__value"
+              id="address">{{ address }}</span><button type="button"
+        class="button button--small"
+        id="copy">Copy</button>
+      </div>
+      <form method="post">
+        <input type="hidden" name="method" value="code">
+        <input type="hidden" name="code" id="code">
+        <label class="field" for="otp">Verification code</label>
+        <div class="otp" id="otp">
+          <input class="otp__digit"
+                 type="text"
+                 inputmode="numeric"
+                 pattern="[0-9]"
+                 maxlength="1"
+                 aria-label="Code digit"
+                 autocomplete="one-time-code">
+          <input class="otp__digit"
+                 type="text"
+                 inputmode="numeric"
+                 pattern="[0-9]"
+                 maxlength="1"
+                 aria-label="Code digit">
+          <input class="otp__digit"
+                 type="text"
+                 inputmode="numeric"
+                 pattern="[0-9]"
+                 maxlength="1"
+                 aria-label="Code digit">
+          <span class="otp__gap"></span>
+          <input class="otp__digit"
+                 type="text"
+                 inputmode="numeric"
+                 pattern="[0-9]"
+                 maxlength="1"
+                 aria-label="Code digit">
+          <input class="otp__digit"
+                 type="text"
+                 inputmode="numeric"
+                 pattern="[0-9]"
+                 maxlength="1"
+                 aria-label="Code digit">
+          <input class="otp__digit"
+                 type="text"
+                 inputmode="numeric"
+                 pattern="[0-9]"
+                 maxlength="1"
+                 aria-label="Code digit">
+        </div>
+        {% if join_error %}<div class="text text--error">{{ join_error }}</div>{% endif %}
+        <div class="actions">
+          <div class="dropdown">
+            <button type="submit" class="button dropdown__main">Log in</button>
+            <details class="dropdown__more">
+              <summary class="button dropdown__toggle" title="Other ways to log in">
+                <svg viewBox="0 0 10 10" aria-hidden="true">
+                  <path d="M1 3l4 4 4-4z" />
+                </svg>
+              </summary>
+              <div class="dropdown__panel">
+                <div class="dropdown__title">Log in with Minecraft</div>
+                <div class="text">Log in with your Minecraft account through the web.</div>
+                {{ warning(minecraft_warning) }}
+                <div class="actions">
+                  <a class="button" href="{{ url('/login/minecraft') }}">Log in with Minecraft</a>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="split__half">
+      <div class="split__title">Existing account</div>
+      <form method="post">
+        <input type="hidden" name="method" value="password">
+        <label class="field" for="username">Minecraft username</label>
+        <input class="field__input"
+               type="text"
+               id="username"
+               name="username"
+               value="{{ username }}"
+               maxlength="16"
+               autocapitalize="off"
+               autocorrect="off"
+               spellcheck="false"
+               autocomplete="username webauthn"
+               required>
+        <label class="field" for="password">Password</label>
+        <input class="field__input"
+               type="password"
+               id="password"
+               name="password"
+               autocomplete="current-password"
+               required>
+        {% if error %}<div class="text text--error">{{ error }}</div>{% endif %}
+        <div class="text text--error" id="passkey-error" hidden></div>
+        <div class="actions">
+          <button type="submit" class="button">Log in</button>
+        </div>
+        <button type="button" class="button button--quiet" id="use-passkey">Log in with passkey</button>
+      </form>
+    </div>
+  </div>
+  <script nonce="{{ nonce }}">(function () {
+var boxes = Array.prototype.slice.call(document.querySelectorAll("#otp input"));
+var hidden = document.getElementById("code");
+var form = hidden.form;
+var submitted = false;
+function sync() {
+  hidden.value = boxes.map(function (b) { return b.value; }).join("");
+  if (hidden.value.length === boxes.length && !submitted) {
+    submitted = true;
+    if (form.requestSubmit) form.requestSubmit(); else form.submit();
+  }
+}
+function fill(from, digits) {
+  for (var i = 0; i < digits.length && from + i < boxes.length; i++) boxes[from + i].value = digits[i];
+  sync(); boxes[Math.min(from + digits.length, boxes.length - 1)].focus();
+}
+boxes.forEach(function (box, i) {
+  box.addEventListener("input", function () {
+    var d = box.value.replace(/\D/g, "");
+    if (d.length > 1) { box.value = ""; fill(i, d); return; }
+    box.value = d; sync();
+    if (d && i + 1 < boxes.length) boxes[i + 1].focus();
+  });
+  box.addEventListener("keydown", function (e) {
+    if (e.key === "Backspace" && !box.value && i > 0) { boxes[i - 1].value = ""; boxes[i - 1].focus(); sync(); e.preventDefault(); }
+    if (e.key === "ArrowLeft" && i > 0) boxes[i - 1].focus();
+    if (e.key === "ArrowRight" && i + 1 < boxes.length) boxes[i + 1].focus();
+  });
+  box.addEventListener("paste", function (e) {
+    var d = (e.clipboardData || window.clipboardData).getData("text").replace(/\D/g, "");
+    if (d) { e.preventDefault(); fill(i, d); }
+  });
+  box.addEventListener("focus", function () { box.select(); });
+});
+var b = document.getElementById("copy");
+b.addEventListener("click", function () {
+  navigator.clipboard.writeText(document.getElementById("address").textContent).then(function () {
+    b.textContent = "Copied"; b.classList.add("button--done");
+    setTimeout(function () { b.textContent = "Copy"; b.classList.remove("button--done"); }, 1500);
+  });
+});
+})();
+  </script>
+  <script nonce="{{ nonce }}">(function () {
+      var options_url = {{ url('/login/passkey/options')|tojson }};
+      var verify_url = {{ url('/login/passkey/verify')|tojson }};
+      var error = document.getElementById("passkey-error");
+
+      function decode(value) {
+        var padded = value.replace(/-/g, "+").replace(/_/g, "/");
+        while (padded.length % 4) padded += "=";
+        var binary = atob(padded);
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+      }
+
+      function encode(buffer) {
+        var bytes = new Uint8Array(buffer);
+        var binary = "";
+        for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      }
+
+      function post(url, body) {
+        return fetch(url, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        }).then(function (response) { return response.json(); }).then(function (result) {
+          if (result.error) throw new Error(result.error);
+          return result;
+        });
+      }
+
+      function offer(mediation, quiet) {
+        post(options_url, {}).then(function (options) {
+          options.challenge = decode(options.challenge);
+          (options.allowCredentials || []).forEach(function (item) { item.id = decode(item.id); });
+          return navigator.credentials.get({ publicKey: options, mediation: mediation });
+        }).then(function (credential) {
+          return post(verify_url, {
+            credential: {
+              id: credential.id,
+              rawId: encode(credential.rawId),
+              type: credential.type,
+              clientExtensionResults: credential.getClientExtensionResults(),
+              response: {
+                clientDataJSON: encode(credential.response.clientDataJSON),
+                authenticatorData: encode(credential.response.authenticatorData),
+                signature: encode(credential.response.signature),
+                userHandle: credential.response.userHandle ? encode(credential.response.userHandle) : null
+              }
+            }
+          });
+        }).then(function (result) {
+          if (result.url) window.location = result.url;
+        }).catch(function (reason) {
+          if (quiet) return;
+          if (reason instanceof DOMException) return;
+          error.textContent = reason.message || "Invalid passkey.";
+          error.hidden = false;
+        });
+      }
+
+      if (!window.PublicKeyCredential || !navigator.credentials || !navigator.credentials.get) return;
+      document.getElementById("use-passkey").addEventListener("click", function () {
+        error.hidden = true;
+        offer("optional", false);
+      });
+      if (!PublicKeyCredential.isConditionalMediationAvailable) return;
+      PublicKeyCredential.isConditionalMediationAvailable().then(function (available) {
+        if (available) offer("conditional", true);
+      }).catch(function () {});
+      })();
+  </script>
+{% endblock %}

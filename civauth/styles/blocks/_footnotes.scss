@@ -1,0 +1,22 @@
+.footnotes {
+  counter-reset: footnote;
+  font-size: 0.9rem;
+  color: $muted;
+
+  &__item {
+    counter-increment: footnote;
+    position: relative;
+    padding-left: 1.4rem;
+
+    &::before {
+      content: counter(footnote) ".";
+      position: absolute;
+      left: 0;
+    }
+  }
+}
+
+.footnote-ref {
+  font-size: 0.75em;
+  vertical-align: super;
+}

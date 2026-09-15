@@ -1,0 +1,93 @@
+<div class="text text--error" id="passkey-error" hidden></div>
+<div class="actions">
+  <button type="button" id="add-passkey" class="button">Add a passkey</button>
+</div>
+<script nonce="{{ nonce }}">(function () {
+var options_url = {{ passkey_options_url|tojson }};
+var verify_url = {{ passkey_verify_url|tojson }};
+var csrf = {{ csrf|tojson }};
+var button = document.getElementById("add-passkey");
+var error = document.getElementById("passkey-error");
+
+function show(message) {
+  error.textContent = message;
+  error.hidden = false;
+  button.disabled = false;
+}
+
+function decode(value) {
+  var padded = value.replace(/-/g, "+").replace(/_/g, "/");
+  while (padded.length % 4) padded += "=";
+  var binary = atob(padded);
+  var bytes = new Uint8Array(binary.length);
+  for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function encode(buffer) {
+  var bytes = new Uint8Array(buffer);
+  var binary = "";
+  for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function post(url, body) {
+  return fetch(url, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  }).then(function (response) {
+    return response.json().catch(function () {
+      throw new Error("The server sent something unexpected. Try again.");
+    });
+  }).then(function (result) {
+    if (result.error) throw new Error(result.error);
+    return result;
+  });
+}
+
+if (!window.PublicKeyCredential || !navigator.credentials || !navigator.credentials.create) {
+  button.disabled = true;
+  show("This browser cannot use passkeys.");
+  return;
+}
+
+button.addEventListener("click", function () {
+  error.hidden = true;
+  button.disabled = true;
+  post(options_url, { csrf: csrf }).then(function (options) {
+    options.challenge = decode(options.challenge);
+    options.user.id = decode(options.user.id);
+    (options.excludeCredentials || []).forEach(function (item) { item.id = decode(item.id); });
+    return navigator.credentials.create({ publicKey: options });
+  }).then(function (credential) {
+    return post(verify_url, {
+      csrf: csrf,
+      credential: {
+        id: credential.id,
+        rawId: encode(credential.rawId),
+        type: credential.type,
+        clientExtensionResults: credential.getClientExtensionResults(),
+        response: {
+          clientDataJSON: encode(credential.response.clientDataJSON),
+          attestationObject: encode(credential.response.attestationObject)
+        }
+      }
+    });
+  }).then(function (result) {
+    window.location = result.url || {{ passkey_done_url|tojson }};
+  }).catch(function (reason) {
+    if (reason && (reason.name === "NotAllowedError" || reason.name === "AbortError")) {
+      button.disabled = false;
+      return;
+    }
+    if (reason && reason.name === "InvalidStateError") {
+      show("This device already has a passkey for your account.");
+      return;
+    }
+    show(reason && reason.message ? reason.message : "Something went wrong. Try again.");
+  });
+});
+})();
+</script>

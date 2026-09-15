@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+  <div class="title">OAuth apps</div>
+  {% if apps %}
+    <div class="cards">
+      {% for app in apps %}
+        <div class="cards__item"><a class="cards__link"
+   href="{{ app.url }}"><span class="cards__name">{{ app.name }}</span></a></div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  <div class="actions">
+    {% if can_create %}<a class="button" href="{{ new_url }}">Create an app</a>{% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,98 @@
+@mixin dark-theme {
+  color-scheme: dark;
+
+  --text: #eaecf0;
+  --muted: #a2a9b1;
+  --link: #8ab0f5;
+  --danger: #ff8a7a;
+  --done: #4fc7a4;
+
+  --page-bg: #161617;
+  --surface: #202122;
+  --tint: #1c2839;
+  --shade: #27292d;
+
+  --border: #4a4f55;
+  --line: #303336;
+  --rule: #72777d;
+  --field-border: #72777d;
+
+  --warning-bg: #2e2410;
+  --warning-border: #edab00;
+  --warning-mark: #f2b24a;
+
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+
+:root {
+  color-scheme: light;
+
+  --text: #202122;
+  --muted: #54595d;
+  --link: #36c;
+  --danger: #d33;
+  --done: #14866d;
+
+  --page-bg: #f4f4f2;
+  --surface: #fff;
+  --tint: #eaf3ff;
+  --shade: #f8f9fa;
+
+  --border: #c8ccd1;
+  --line: #eaecf0;
+  --rule: #a2a9b1;
+  --field-border: #a2a9b1;
+
+  --warning-bg: #fef6e7;
+  --warning-border: #edab00;
+  --warning-mark: #ac6600;
+
+  --shadow: rgba(0, 0, 0, 0.12);
+
+  --accent: #36c;
+  --accent-danger: #d33;
+  --accent-done: #14866d;
+  --on-accent: #fff;
+
+  --page: 50rem;
+  --gutter: 2rem;
+}
+
+:root[data-theme="dark"] {
+  @include dark-theme;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    @include dark-theme;
+  }
+}
+
+$text: var(--text);
+$muted: var(--muted);
+$link: var(--link);
+$danger: var(--danger);
+$done: var(--done);
+
+$page-bg: var(--page-bg);
+$surface: var(--surface);
+$tint: var(--tint);
+$shade: var(--shade);
+
+$border: var(--border);
+$line: var(--line);
+$rule: var(--rule);
+$field-border: var(--field-border);
+
+$warning-bg: var(--warning-bg);
+$warning-border: var(--warning-border);
+$warning-mark: var(--warning-mark);
+
+$shadow: var(--shadow);
+$accent: var(--accent);
+$accent-danger: var(--accent-danger);
+$accent-done: var(--accent-done);
+$on-accent: var(--on-accent);
+
+$mono: ui-monospace, Menlo, monospace;
+$sans: system-ui, -apple-system, "Segoe UI", sans-serif;

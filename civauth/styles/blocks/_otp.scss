@@ -1,0 +1,22 @@
+.otp {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+
+  &__gap {
+    width: 0.8rem;
+  }
+
+  &__digit {
+    width: 2.8rem;
+    height: 3.4rem;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border: 1px solid $field-border;
+    border-radius: 2px;
+    text-align: center;
+    font-size: 1.7rem;
+    font-family: $mono;
+  }
+}

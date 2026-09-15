@@ -1,0 +1,61 @@
+.button {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border: 1px solid $accent;
+  border-radius: 2px;
+  background: $accent;
+  color: $on-accent;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  list-style: none;
+  cursor: pointer;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &--plain {
+    background: $surface;
+    color: $link;
+  }
+
+  &--danger {
+    background: $surface;
+    border-color: $danger;
+    color: $danger;
+
+    &:hover {
+      background: $accent-danger;
+      border-color: $accent-danger;
+      color: $on-accent;
+    }
+  }
+
+  &--quiet {
+    display: inline-block;
+    margin-top: 0.7rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $link;
+    font-size: 0.9rem;
+    font-weight: normal;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &--small {
+    margin-top: 0.4rem;
+    padding: 0.15rem 0.6rem;
+    font-weight: normal;
+  }
+
+  &--done {
+    background: $accent-done;
+    border-color: $accent-done;
+    color: $on-accent;
+  }
+}

@@ -1,0 +1,55 @@
+.dropdown {
+  position: relative;
+  display: inline-flex;
+
+  &__main {
+    border-radius: 2px 0 0 2px;
+  }
+
+  &__more {
+    display: flex;
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0 2px 2px 0;
+    border-left-color: rgba(255, 255, 255, 0.4);
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    svg {
+      width: 0.7rem;
+      height: 0.7rem;
+      fill: $on-accent;
+    }
+  }
+
+  &__panel {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 0.3rem);
+    z-index: 10;
+    width: 22rem;
+    max-width: 85vw;
+    padding: 0.2rem 1rem 1rem;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px $shadow;
+
+    .actions {
+      margin-top: 1rem;
+    }
+  }
+
+  &__title {
+    margin-top: 0.8rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+}
