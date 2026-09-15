@@ -39,13 +39,17 @@
   }
 
   &__grants {
-    margin: 0.4rem 0;
+    margin: 0.5rem 0 0;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid $line;
+    border-radius: 3px;
+    background: $shade;
     list-style: none;
   }
 
   &__grant {
     position: relative;
-    margin: 0.3rem 0;
+    margin: 0.15rem 0;
     padding-left: 1.6rem;
 
     svg {
