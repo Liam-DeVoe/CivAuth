@@ -1,14 +1,11 @@
-from __future__ import annotations
-
 import sys
 import time
 from argparse import ArgumentParser
 
 import httpx
 
-from civauth import constants
 import secret
-
+from civauth import constants
 from civauth.config import Config
 from civauth.store import Store
 
@@ -18,8 +15,10 @@ TIMEOUT = 5
 DEFAULT_LIMIT = 200
 DEFAULT_PAUSE = 1.0
 
+
 class RateLimited(Exception):
     pass
+
 
 def lookup(client: httpx.Client, uuid: str) -> str | None:
     response = client.get(PROFILE_URL + uuid.replace("-", ""))
@@ -35,6 +34,7 @@ def lookup(client: httpx.Client, uuid: str) -> str | None:
         return None
     name = body.get("name")
     return name if isinstance(name, str) and name else None
+
 
 def main(argv: list[str]) -> int:
     parser = ArgumentParser()
@@ -78,6 +78,7 @@ def main(argv: list[str]) -> int:
         f"{renamed} renamed, {failed} failed{tail}"
     )
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

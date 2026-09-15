@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import os
 import secrets
@@ -32,6 +30,7 @@ RP_NAME = "CivAuth"
 
 CHALLENGE = "passkey_challenge"
 
+
 @bp.post("/account/passkey/options")
 def add_options() -> Response:
     auth = civ()
@@ -59,6 +58,7 @@ def add_options() -> Response:
         ],
     )
     return keep(challenge, json_response(json.loads(options_to_json(options))))
+
 
 @bp.post("/account/passkey/verify")
 def add_verify() -> Response:
@@ -96,6 +96,7 @@ def add_verify() -> Response:
     release(req)
     return json_response({"ok": True})
 
+
 @bp.post("/login/passkey/options")
 def login_options() -> Response:
     if pending() is None:
@@ -109,6 +110,7 @@ def login_options() -> Response:
     )
     return keep(challenge, json_response(json.loads(options_to_json(options))))
 
+
 @bp.post("/login/passkey/verify")
 def login_verify() -> Response:
     auth = civ()
@@ -120,7 +122,11 @@ def login_verify() -> Response:
     if not isinstance(credential, dict):
         return fail("That passkey could not be read.")
     try:
-        credential_id = bytes_to_base64url(base64url_to_bytes(str(credential.get("rawId") or credential.get("id") or "")))
+        credential_id = bytes_to_base64url(
+            base64url_to_bytes(
+                str(credential.get("rawId") or credential.get("id") or "")
+            )
+        )
     except Exception:
         return fail("That passkey could not be read.")
     row = auth.store.passkey(credential_id)
@@ -150,6 +156,7 @@ def login_verify() -> Response:
     auth.store.delete_request(req["id"])
     return handoff(signed_in(params, account["uuid"], account["name"]))
 
+
 def handoff(response: Response) -> Response:
     location = response.headers.get("Location")
     if location is None:
@@ -159,41 +166,55 @@ def handoff(response: Response) -> Response:
         out.headers.add("Set-Cookie", cookie)
     return out
 
+
 def keep(challenge: bytes, response: Response) -> Response:
     auth = civ()
     req = pending()
     params = dict(req["params"]) if req is not None else {}
     params[CHALLENGE] = bytes_to_base64url(challenge)
     flow = request.cookies.get(constants.FLOW_COOKIE) or CivAuth.random_token()
-    auth.store.create_request(CivAuth.random_token(), Store.hash(flow), params, auth.now())
+    auth.store.create_request(
+        CivAuth.random_token(), Store.hash(flow), params, auth.now()
+    )
     if req is not None:
         auth.store.delete_request(req["id"])
     return auth.set_cookie(response, constants.FLOW_COOKIE, flow, constants.REQUEST_TTL)
 
+
 def release(req: dict) -> None:
     auth = civ()
     auth.store.delete_request(req["id"])
-    carried = {name: value for name, value in req["params"].items() if name != CHALLENGE}
+    carried = {
+        name: value for name, value in req["params"].items() if name != CHALLENGE
+    }
     if carried:
-        auth.store.create_request(CivAuth.random_token(), req["binding_hash"], carried, auth.now())
+        auth.store.create_request(
+            CivAuth.random_token(), req["binding_hash"], carried, auth.now()
+        )
+
 
 def payload() -> dict:
     body = request.get_json(silent=True, force=True)
     return body if isinstance(body, dict) else {}
 
+
 def allowed(session: dict, body: dict) -> bool:
     csrf = body.get("csrf")
     return isinstance(csrf, str) and secrets.compare_digest(session["csrf"], csrf)
 
+
 def fail(message: str) -> Response:
     return json_response({"ok": False, "error": message}, 400)
+
 
 def issuer() -> tuple[str, str]:
     parts = urlparse(civ().config.issuer)
     return parts.hostname or "", f"{parts.scheme}://{parts.netloc}"
 
+
 def rp_id() -> str:
     return issuer()[0]
+
 
 def origin() -> str:
     return issuer()[1]

@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 from types import ModuleType
+from typing import Self
 from urllib.parse import urlparse
 
 KEYS = {
@@ -11,6 +10,7 @@ KEYS = {
     "join_address",
     "database",
 }
+
 
 class Config:
     def __init__(self, data: dict) -> None:
@@ -36,8 +36,14 @@ class Config:
         self.database = _string(data, "database")
 
     @classmethod
-    def from_module(cls, module: ModuleType) -> Config:
-        return cls({name: value for name, value in vars(module).items() if not name.startswith("_")})
+    def from_module(cls, module: ModuleType) -> Self:
+        return cls(
+            {
+                name: value
+                for name, value in vars(module).items()
+                if not name.startswith("_")
+            }
+        )
 
     def url(self, route: str) -> str:
         return self.issuer + route

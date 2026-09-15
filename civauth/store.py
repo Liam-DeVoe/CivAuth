@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import hashlib
 import json
 import sqlite3
@@ -97,6 +95,7 @@ CREATE TABLE IF NOT EXISTS avatars (
 );
 """
 
+
 class Store:
     def __init__(self, path: str) -> None:
         self._db = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
@@ -130,7 +129,9 @@ class Store:
     def delete_session(self, hash: str) -> None:
         self._write("DELETE FROM sessions WHERE hash = ?", (hash,))
 
-    def create_request(self, id: str, binding_hash: str, params: dict, created_at: int) -> None:
+    def create_request(
+        self, id: str, binding_hash: str, params: dict, created_at: int
+    ) -> None:
         self._write(
             "INSERT INTO requests (id, binding_hash, params, created_at) VALUES (?, ?, ?, ?)",
             (id, binding_hash, json.dumps(params), created_at),
@@ -159,8 +160,12 @@ class Store:
 
     def count_attempt(self, id: str) -> int:
         with self._lock:
-            self._db.execute("UPDATE requests SET attempts = attempts + 1 WHERE id = ?", (id,))
-            row = self._db.execute("SELECT attempts FROM requests WHERE id = ?", (id,)).fetchone()
+            self._db.execute(
+                "UPDATE requests SET attempts = attempts + 1 WHERE id = ?", (id,)
+            )
+            row = self._db.execute(
+                "SELECT attempts FROM requests WHERE id = ?", (id,)
+            ).fetchone()
         return 0 if row is None else int(row["attempts"])
 
     def create_join_code(self, hash: str, uuid: str, name: str, now: int) -> bool:
@@ -186,7 +191,10 @@ class Store:
         return None if row is None else dict(row)
 
     def record_join_failure(self, address: str, now: int) -> None:
-        self._write("INSERT INTO join_failures (address, created_at) VALUES (?, ?)", (address, now))
+        self._write(
+            "INSERT INTO join_failures (address, created_at) VALUES (?, ?)",
+            (address, now),
+        )
 
     def join_failures_since(self, address: str, since: int) -> int:
         row = self._one(
@@ -215,7 +223,12 @@ class Store:
         return self._one("SELECT * FROM codes WHERE hash = ?", (hash,))
 
     def consume_code(self, hash: str) -> bool:
-        return self._write("UPDATE codes SET used = 1 WHERE hash = ? AND used = 0", (hash,)) == 1
+        return (
+            self._write(
+                "UPDATE codes SET used = 1 WHERE hash = ? AND used = 0", (hash,)
+            )
+            == 1
+        )
 
     def create_token(
         self,
@@ -242,7 +255,8 @@ class Store:
 
     def apps_owned_by(self, uuid: str) -> list[dict]:
         rows = self._db.execute(
-            "SELECT * FROM apps WHERE owner_uuid = ? ORDER BY created_at, client_id", (uuid,)
+            "SELECT * FROM apps WHERE owner_uuid = ? ORDER BY created_at, client_id",
+            (uuid,),
         ).fetchall()
         return [dict(row) for row in rows]
 
@@ -272,7 +286,9 @@ class Store:
             == 1
         )
 
-    def update_app(self, client_id: str, name: str, redirect_uris: list[str], now: int) -> None:
+    def update_app(
+        self, client_id: str, name: str, redirect_uris: list[str], now: int
+    ) -> None:
         self._write(
             "UPDATE apps SET name = ?, redirect_uris = ?, updated_at = ? WHERE client_id = ?",
             (name, json.dumps(list(redirect_uris)), now, client_id),
@@ -285,7 +301,9 @@ class Store:
         )
 
     def grant(self, uuid: str, client_id: str) -> dict | None:
-        return self._one("SELECT * FROM grants WHERE uuid = ? AND client_id = ?", (uuid, client_id))
+        return self._one(
+            "SELECT * FROM grants WHERE uuid = ? AND client_id = ?", (uuid, client_id)
+        )
 
     def record_grant(self, uuid: str, client_id: str, now: int) -> None:
         self._write(
@@ -313,14 +331,17 @@ class Store:
             ).rowcount
             for table in ("tokens", "codes"):
                 self._db.execute(
-                    f"DELETE FROM {table} WHERE uuid = ? AND client_id = ?", (uuid, client_id)
+                    f"DELETE FROM {table} WHERE uuid = ? AND client_id = ?",
+                    (uuid, client_id),
                 )
         return removed == 1
 
     def delete_app(self, client_id: str) -> None:
         with self._lock:
             for table in ("tokens", "codes", "grants", "apps"):
-                self._db.execute(f"DELETE FROM {table} WHERE client_id = ?", (client_id,))
+                self._db.execute(
+                    f"DELETE FROM {table} WHERE client_id = ?", (client_id,)
+                )
 
     def account(self, uuid: str) -> dict | None:
         return self._one("SELECT * FROM accounts WHERE uuid = ?", (uuid,))
@@ -335,11 +356,14 @@ class Store:
 
     def set_password(self, uuid: str, password_hash: str | None, now: int) -> None:
         self._write(
-            "UPDATE accounts SET password_hash = ?, updated_at = ? WHERE uuid = ?", (password_hash, now, uuid)
+            "UPDATE accounts SET password_hash = ?, updated_at = ? WHERE uuid = ?",
+            (password_hash, now, uuid),
         )
 
     def account_by_name(self, name: str) -> dict | None:
-        return self._one("SELECT * FROM accounts WHERE name = ? COLLATE NOCASE", (name,))
+        return self._one(
+            "SELECT * FROM accounts WHERE name = ? COLLATE NOCASE", (name,)
+        )
 
     def accounts_to_check(self, before: int, limit: int) -> list[dict]:
         cursor = self._db.execute(
@@ -354,7 +378,9 @@ class Store:
                 "UPDATE accounts SET name = ?, name_checked_at = ?, updated_at = ? WHERE uuid = ?",
                 (name, now, now, uuid),
             )
-            self._db.execute("UPDATE sessions SET name = ? WHERE uuid = ?", (name, uuid))
+            self._db.execute(
+                "UPDATE sessions SET name = ? WHERE uuid = ?", (name, uuid)
+            )
 
     def add_passkey(
         self, credential_id: str, uuid: str, public_key: str, sign_count: int, now: int
@@ -366,10 +392,14 @@ class Store:
         )
 
     def passkey(self, credential_id: str) -> dict | None:
-        return self._one("SELECT * FROM passkeys WHERE credential_id = ?", (credential_id,))
+        return self._one(
+            "SELECT * FROM passkeys WHERE credential_id = ?", (credential_id,)
+        )
 
     def passkeys_for(self, uuid: str) -> list[dict]:
-        cursor = self._db.execute("SELECT * FROM passkeys WHERE uuid = ? ORDER BY created_at", (uuid,))
+        cursor = self._db.execute(
+            "SELECT * FROM passkeys WHERE uuid = ? ORDER BY created_at", (uuid,)
+        )
         return [dict(row) for row in cursor.fetchall()]
 
     def used_passkey(self, credential_id: str, sign_count: int, now: int) -> None:
@@ -379,10 +409,19 @@ class Store:
         )
 
     def delete_passkey(self, credential_id: str, uuid: str) -> bool:
-        return self._write("DELETE FROM passkeys WHERE credential_id = ? AND uuid = ?", (credential_id, uuid)) == 1
+        return (
+            self._write(
+                "DELETE FROM passkeys WHERE credential_id = ? AND uuid = ?",
+                (credential_id, uuid),
+            )
+            == 1
+        )
 
     def record_login_failure(self, uuid: str, address: str, now: int) -> None:
-        self._write("INSERT INTO login_failures (uuid, address, created_at) VALUES (?, ?, ?)", (uuid, address, now))
+        self._write(
+            "INSERT INTO login_failures (uuid, address, created_at) VALUES (?, ?, ?)",
+            (uuid, address, now),
+        )
 
     def login_failures_by_address(self, address: str, since: int) -> int:
         row = self._one(
@@ -408,17 +447,31 @@ class Store:
         )
 
     def extend_session(self, hash: str, expires_at: int) -> None:
-        self._write("UPDATE sessions SET expires_at = ? WHERE hash = ?", (expires_at, hash))
+        self._write(
+            "UPDATE sessions SET expires_at = ? WHERE hash = ?", (expires_at, hash)
+        )
 
-    def purge(self, now: int, request_ttl: int, join_code_ttl: int, failure_window: int) -> None:
+    def purge(
+        self, now: int, request_ttl: int, join_code_ttl: int, failure_window: int
+    ) -> None:
         with self._lock:
             self._db.execute("DELETE FROM sessions WHERE expires_at < ?", (now,))
-            self._db.execute("DELETE FROM requests WHERE created_at < ?", (now - request_ttl,))
+            self._db.execute(
+                "DELETE FROM requests WHERE created_at < ?", (now - request_ttl,)
+            )
             self._db.execute("DELETE FROM codes WHERE expires_at < ?", (now,))
             self._db.execute("DELETE FROM tokens WHERE expires_at < ?", (now,))
-            self._db.execute("DELETE FROM join_codes WHERE created_at < ?", (now - join_code_ttl,))
-            self._db.execute("DELETE FROM join_failures WHERE created_at < ?", (now - failure_window,))
-            self._db.execute("DELETE FROM login_failures WHERE created_at < ?", (now - failure_window,))
+            self._db.execute(
+                "DELETE FROM join_codes WHERE created_at < ?", (now - join_code_ttl,)
+            )
+            self._db.execute(
+                "DELETE FROM join_failures WHERE created_at < ?",
+                (now - failure_window,),
+            )
+            self._db.execute(
+                "DELETE FROM login_failures WHERE created_at < ?",
+                (now - failure_window,),
+            )
 
     def _one(self, sql: str, args: tuple) -> dict | None:
         row = self._db.execute(sql, args).fetchone()

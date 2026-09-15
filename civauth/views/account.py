@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import datetime
 import secrets
 
@@ -11,10 +9,12 @@ from civauth import civ, html_response
 
 bp = Blueprint("account", __name__)
 
+
 @bp.get("/account")
 def index() -> Response:
     message = "Passkey added." if request.args.get("added") else None
     return page(require_session(), message, None)
+
 
 @bp.post("/account/password")
 def password() -> Response:
@@ -31,6 +31,7 @@ def password() -> Response:
         return page(session, "Password set.", None)
     return page(session, "Password changed.", None)
 
+
 @bp.post("/account/apps/remove")
 def remove_app() -> Response:
     auth = civ()
@@ -43,6 +44,7 @@ def remove_app() -> Response:
     name = "That app" if app is None else app["name"]
     return page(session, Markup("Removed {} from authorized apps.").format(name), None)
 
+
 @bp.post("/account/passkeys/delete")
 def remove_passkey() -> Response:
     auth = civ()
@@ -52,6 +54,7 @@ def remove_passkey() -> Response:
     if not auth.store.delete_passkey(credential_id, session["uuid"]):
         return page(session, None, "That passkey is already gone.")
     return page(session, "That passkey has been removed.", None)
+
 
 def require_session() -> dict:
     session = civ().session()
@@ -63,13 +66,16 @@ def require_session() -> dict:
 
     abort(start_login("/account"))
 
+
 def check_csrf(session: dict) -> None:
     csrf = request.form.get("csrf")
     if csrf is None or not equals(session["csrf"], csrf):
         abort(civ().error_page("This form could not be verified", "", 400))
 
+
 def equals(known: str, given: str) -> bool:
     return secrets.compare_digest(known.encode(), given.encode())
+
 
 def page(session: dict, message: str | None, error: str | None) -> Response:
     auth = civ()
@@ -111,6 +117,7 @@ def owner(row: dict) -> str:
     if not row["owner_uuid"]:
         return "CivAuth"
     return row["owner_name"] or row["owner_uuid"]
+
 
 def added(created_at: int) -> str:
     moment = datetime.datetime.fromtimestamp(int(created_at), datetime.timezone.utc)

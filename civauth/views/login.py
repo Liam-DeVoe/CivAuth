@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from flask import Blueprint, Response, request
 
 from civauth import civ, redirect_response
@@ -8,6 +6,7 @@ from civauth.views.join import verify_code
 from civauth.views.password import verify_password
 
 bp = Blueprint("login", __name__)
+
 
 @bp.get("/")
 def page() -> Response:
@@ -19,6 +18,7 @@ def page() -> Response:
         return start_login("/account")
     auth.store.touch_request(req["id"], auth.now())
     return login_page()
+
 
 @bp.post("/")
 @bp.post("/oauth/authorize")

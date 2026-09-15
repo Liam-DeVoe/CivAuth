@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import base64
 import os
 import secrets
@@ -7,11 +5,20 @@ import time
 from typing import Any, Callable
 from urllib.parse import urlencode
 
-from flask import Flask, Response, current_app, g, make_response, render_template, request
+from flask import (
+    Flask,
+    Response,
+    current_app,
+    g,
+    make_response,
+    render_template,
+    request,
+)
 
 from civauth import constants
 from civauth.config import Config
 from civauth.store import Store
+
 
 class Client:
 
@@ -41,6 +48,7 @@ class Client:
             return True
         return parts.hostname.lower() in ("localhost", "127.0.0.1", "::1")
 
+
 class CivAuth:
 
     def __init__(
@@ -66,7 +74,10 @@ class CivAuth:
         now = self.now()
         if row is None or row["expires_at"] <= now:
             return None
-        if row["expires_at"] - now < constants.SESSION_TTL - constants.SESSION_SLIDE_AFTER:
+        if (
+            row["expires_at"] - now
+            < constants.SESSION_TTL - constants.SESSION_SLIDE_AFTER
+        ):
             self.store.extend_session(row["hash"], now + constants.SESSION_TTL)
             row["expires_at"] = now + constants.SESSION_TTL
         return row
@@ -75,7 +86,9 @@ class CivAuth:
         row = self.store.app(client_id)
         return None if row is None else Client(row)
 
-    def error_page(self, title: str, message: str, status: int, extra: str = "") -> Response:
+    def error_page(
+        self, title: str, message: str, status: int, extra: str = ""
+    ) -> Response:
         html = render_template("error.html", title=title, message=message, extra=extra)
         return html_response(html, status)
 
@@ -87,20 +100,31 @@ class CivAuth:
         response.headers["Allow"] = ", ".join(methods)
         return response
 
-    def redirect_error(self, redirect_uri: str, error: str, description: str, state: str | None) -> Response:
+    def redirect_error(
+        self, redirect_uri: str, error: str, description: str, state: str | None
+    ) -> Response:
         params: dict[str, str] = {"error": error, "error_description": description}
         if state is not None:
             params["state"] = state
         return redirect_response(self.append_query(redirect_uri, params))
 
     def set_session_cookie(self, response: Response, token: str) -> Response:
-        return self.set_cookie(response, constants.SESSION_COOKIE, token, constants.SESSION_TTL)
+        return self.set_cookie(
+            response, constants.SESSION_COOKIE, token, constants.SESSION_TTL
+        )
 
     def clear_session_cookie(self, response: Response) -> Response:
-        return self.set_cookie(response, constants.SESSION_COOKIE, "", 0, expire_now=True)
+        return self.set_cookie(
+            response, constants.SESSION_COOKIE, "", 0, expire_now=True
+        )
 
     def set_cookie(
-        self, response: Response, name: str, value: str, max_age: int, expire_now: bool = False
+        self,
+        response: Response,
+        name: str,
+        value: str,
+        max_age: int,
+        expire_now: bool = False,
     ) -> Response:
         response.set_cookie(
             name,
@@ -133,10 +157,14 @@ class CivAuth:
         clean = {k: v for k, v in params.items() if v is not None}
         return uri + ("&" if "?" in uri else "?") + urlencode(clean, quote_via=_quote)
 
-def _quote(string: str, safe: str, encoding: str | None = None, errors: str | None = None) -> str:
+
+def _quote(
+    string: str, safe: str, encoding: str | None = None, errors: str | None = None
+) -> str:
     from urllib.parse import quote
 
     return quote(str(string), safe="~-._")
+
 
 def html_response(html: str, status: int = 200) -> Response:
     response = make_response(html, status)
@@ -144,6 +172,7 @@ def html_response(html: str, status: int = 200) -> Response:
     response.headers["Cache-Control"] = "no-store"
     response.headers["X-Frame-Options"] = "DENY"
     return response
+
 
 def json_response(data: dict, status: int = 200, cacheable: bool = False) -> Response:
     import json
@@ -158,19 +187,23 @@ def json_response(data: dict, status: int = 200, cacheable: bool = False) -> Res
         response.headers["Pragma"] = "no-cache"
     return response
 
+
 def redirect_response(url: str) -> Response:
     response = make_response("", 302)
     response.headers["Location"] = url
     response.headers["Cache-Control"] = "no-store"
     return response
 
+
 def civ() -> CivAuth:
     return current_app.extensions["civauth"]
+
 
 def script_nonce() -> str:
     if "script_nonce" not in g:
         g.script_nonce = CivAuth.random_token()
     return g.script_nonce
+
 
 def content_security_policy(nonce: str) -> str:
     return "; ".join(
@@ -185,7 +218,9 @@ def content_security_policy(nonce: str) -> str:
         )
     )
 
+
 def create_app(config: Config | None = None) -> Flask:
+    import secret
     from civauth.minecraft import MojangChain
     from civauth.views import (
         account,
@@ -199,8 +234,6 @@ def create_app(config: Config | None = None) -> Flask:
         style,
         token,
     )
-
-    import secret
 
     config = config or Config.from_module(secret)
     store = Store(config.database)

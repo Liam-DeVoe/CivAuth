@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import re
 from urllib.parse import quote
 
@@ -21,6 +19,7 @@ DUMMY_HASH = generate_password_hash(CivAuth.random_token())
 WRONG = "Incorrect username or password."
 TOO_MANY = "Too many failed attempts. Wait a few minutes and try again."
 
+
 def verify_password() -> Response:
     app = civ()
     req = pending()
@@ -30,23 +29,37 @@ def verify_password() -> Response:
     now = app.now()
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
-    address = (request.headers.get("X-Forwarded-For", request.remote_addr) or "").split(",")[0].strip()
+    address = (
+        (request.headers.get("X-Forwarded-For", request.remote_addr) or "")
+        .split(",")[0]
+        .strip()
+    )
 
     since = now - constants.PASSWORD_ATTEMPT_WINDOW
-    if app.store.login_failures_by_address(address, since) >= constants.PASSWORD_ATTEMPTS:
+    if (
+        app.store.login_failures_by_address(address, since)
+        >= constants.PASSWORD_ATTEMPTS
+    ):
         return form(username, TOO_MANY)
     account = resolve(username)
-    if account is not None and app.store.login_failures_by_uuid(account["uuid"], since) >= constants.PASSWORD_ATTEMPTS:
+    if (
+        account is not None
+        and app.store.login_failures_by_uuid(account["uuid"], since)
+        >= constants.PASSWORD_ATTEMPTS
+    ):
         return form(username, TOO_MANY)
 
     stored = None if account is None else account["password_hash"]
     verified = check_password_hash(stored or DUMMY_HASH, password)
     if stored is None or not verified:
-        app.store.record_login_failure("" if account is None else account["uuid"], address, now)
+        app.store.record_login_failure(
+            "" if account is None else account["uuid"], address, now
+        )
         return form(username, WRONG)
 
     app.store.delete_request(req["id"])
     return signed_in(req["params"], account["uuid"], account["name"])
+
 
 def resolve(username: str) -> dict | None:
     store = civ().store
@@ -70,6 +83,7 @@ def resolve(username: str) -> dict | None:
     if not isinstance(uuid, str) or not UUID.fullmatch(uuid):
         return None
     return store.account(uuid.lower())
+
 
 def form(username: str, error: str | None) -> Response:
     return login_page(username=username, error=error)

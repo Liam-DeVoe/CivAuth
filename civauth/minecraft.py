@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import logging
 import re
@@ -11,13 +9,16 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass(frozen=True)
 class Profile:
     uuid: str
     name: str
 
+
 class LoginFailed(Exception):
     pass
+
 
 AUTHORIZE = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize"
 TOKEN = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token"
@@ -32,16 +33,13 @@ TIMEOUT = 20
 
 XSTS_ERRORS = {
     "2148916227": "This Xbox account is banned.",
-    "2148916233": (
-        "This Microsoft account has no Xbox profile yet."
-    ),
+    "2148916233": ("This Microsoft account has no Xbox profile yet."),
     "2148916235": "Xbox Live is not available in this account's country.",
     "2148916236": "This account needs adult verification on the Xbox website.",
     "2148916237": "This account needs adult verification on the Xbox website.",
-    "2148916238": (
-        "This is a child account and must be added to a family group."
-    ),
+    "2148916238": ("This is a child account and must be added to a family group."),
 }
+
 
 class MojangChain:
     def __init__(self, client_id: str, client_secret: str, redirect_uri: str) -> None:
@@ -103,7 +101,9 @@ class MojangChain:
         data = _decode(body)
         claims = data.get("DisplayClaims")
         xui = claims.get("xui") if isinstance(claims, dict) else None
-        first = xui[0] if isinstance(xui, list) and xui and isinstance(xui[0], dict) else {}
+        first = (
+            xui[0] if isinstance(xui, list) and xui and isinstance(xui[0], dict) else {}
+        )
         user_hash = first.get("uhs")
         token = data.get("Token")
         if not isinstance(token, str) or not isinstance(user_hash, str):
@@ -123,7 +123,9 @@ class MojangChain:
         if status == 401:
             code = _decode(body).get("XErr", "")
             raise LoginFailed(
-                XSTS_ERRORS.get(str(code), "Xbox Live would not authorize this account.")
+                XSTS_ERRORS.get(
+                    str(code), "Xbox Live would not authorize this account."
+                )
             )
         if status != 200:
             raise LoginFailed("Xbox Live would not authorize this account.")
@@ -142,7 +144,9 @@ class MojangChain:
             raise LoginFailed("Minecraft login is misconfigured on this server.")
         if status != 200:
             raise LoginFailed("Minecraft services rejected the sign-in.")
-        return _field(body, "access_token", "Minecraft services returned no access token.")
+        return _field(
+            body, "access_token", "Minecraft services returned no access token."
+        )
 
     def _minecraft_profile(self, mc_token: str) -> Profile:
         status, body = self._send(
@@ -151,7 +155,9 @@ class MojangChain:
             {"Authorization": f"Bearer {mc_token}", "Accept": "application/json"},
         )
         if status == 404:
-            raise LoginFailed("This Microsoft account does not own Minecraft: Java Edition.")
+            raise LoginFailed(
+                "This Microsoft account does not own Minecraft: Java Edition."
+            )
         if status != 200:
             raise LoginFailed("Could not read the Minecraft profile.")
         data = _decode(body)
@@ -165,7 +171,9 @@ class MojangChain:
             raise LoginFailed("Minecraft services returned an unexpected profile.")
         return Profile(id_.lower(), name)
 
-    def _post(self, url: str, payload: dict[str, Any], as_json: bool) -> tuple[int, str]:
+    def _post(
+        self, url: str, payload: dict[str, Any], as_json: bool
+    ) -> tuple[int, str]:
         if as_json:
             return self._send(
                 url,
@@ -181,7 +189,9 @@ class MojangChain:
             },
         )
 
-    def _send(self, url: str, body: str | None, headers: dict[str, str]) -> tuple[int, str]:
+    def _send(
+        self, url: str, body: str | None, headers: dict[str, str]
+    ) -> tuple[int, str]:
         if not url.startswith("https://"):
             raise ValueError()
         try:
@@ -199,12 +209,14 @@ class MojangChain:
             return 0, ""
         return response.status_code, response.text
 
+
 def _decode(body: str) -> dict[str, Any]:
     try:
         data = json.loads(body)
     except ValueError:
         return {}
     return data if isinstance(data, dict) else {}
+
 
 def _field(body: str, name: str, error: str) -> str:
     value = _decode(body).get(name)

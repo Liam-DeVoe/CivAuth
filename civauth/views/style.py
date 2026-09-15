@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import hashlib
 from pathlib import Path
 
@@ -17,6 +15,7 @@ CSS = sass.compile(
 )
 VERSION = hashlib.sha256(CSS.encode()).hexdigest()[:12]
 ETAG = f'"{VERSION}"'
+
 
 @bp.get("/style.css")
 def stylesheet() -> Response:

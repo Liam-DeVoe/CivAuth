@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import base64
 import hashlib
 import io
@@ -40,8 +38,10 @@ PLACEHOLDER_ROWS = (
     "...##...",
 )
 
+
 class Unavailable(Exception):
     pass
+
 
 @bp.route("/avatar/<uuid>.png", methods=["GET"])
 def head(uuid: str) -> Response:
@@ -60,6 +60,7 @@ def head(uuid: str) -> Response:
     app.store.put_avatar(uuid, png, now)
     return png_response(png)
 
+
 def build(uuid: str) -> bytes:
     with httpx.Client(
         timeout=TIMEOUT, follow_redirects=False, headers={"User-Agent": USER_AGENT}
@@ -74,6 +75,7 @@ def build(uuid: str) -> bytes:
         if skin.status_code != 200:
             raise Unavailable(f"skin download returned {skin.status_code}")
     return render(skin.content)
+
 
 def skin_url(body: object) -> str | None:
     if not isinstance(body, dict):
@@ -94,6 +96,7 @@ def skin_url(body: object) -> str | None:
             return url
     return None
 
+
 def texture_url(url: object) -> str | None:
     if not isinstance(url, str):
         return None
@@ -101,6 +104,7 @@ def texture_url(url: object) -> str | None:
     if parts.scheme not in ("http", "https") or parts.hostname != TEXTURES_HOST:
         return None
     return urlunsplit(("https", TEXTURES_HOST, parts.path, parts.query, ""))
+
 
 def render(skin_png: bytes) -> bytes:
     with Image.open(io.BytesIO(skin_png)) as opened:
@@ -113,10 +117,12 @@ def render(skin_png: bytes) -> bytes:
         face = Image.alpha_composite(face, hat)
     return to_png(face.resize((SIZE, SIZE), Image.NEAREST))
 
+
 def to_png(image: Image.Image) -> bytes:
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
     return buffer.getvalue()
+
 
 def placeholder() -> bytes:
     image = Image.new("RGBA", (8, 8), PLACEHOLDER_SKIN)
@@ -126,7 +132,9 @@ def placeholder() -> bytes:
                 image.putpixel((x, y), PLACEHOLDER_MARK)
     return to_png(image.resize((SIZE, SIZE), Image.NEAREST))
 
+
 PLACEHOLDER = placeholder()
+
 
 def png_response(png: bytes) -> Response:
     etag = '"' + hashlib.sha256(png).hexdigest()[:32] + '"'
@@ -138,6 +146,7 @@ def png_response(png: bytes) -> Response:
     response.headers["Cache-Control"] = "public, max-age=3600"
     response.headers["ETag"] = etag
     return response
+
 
 def fresh(header: str | None, etag: str) -> bool:
     if not header:

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import base64
 import binascii
 import hashlib
@@ -18,6 +16,7 @@ _BASIC = re.compile(r"Basic\s+([A-Za-z0-9+/=]+)", re.IGNORECASE)
 _BEARER = re.compile(r"Bearer\s+(\S+)", re.IGNORECASE)
 _VERIFIER = re.compile(r"[A-Za-z0-9._~-]{43,128}")
 
+
 @bp.route("/oauth/token", methods=["POST"])
 def token() -> Response:
     client_id, secret, conflict = _client_credentials()
@@ -26,13 +25,20 @@ def token() -> Response:
     client = None if client_id is None else civ().client(client_id)
     if client is None or secret is None or not client.verify_secret(secret):
         response = json_response(
-            {"error": "invalid_client", "error_description": "Client authentication failed."}, 401
+            {
+                "error": "invalid_client",
+                "error_description": "Client authentication failed.",
+            },
+            401,
         )
         response.headers["WWW-Authenticate"] = 'Basic realm="civauth"'
         return response
     now = civ().now()
     civ().store.purge(
-        now, constants.REQUEST_TTL, constants.JOIN_CODE_TTL, constants.JOIN_FAILURE_WINDOW
+        now,
+        constants.REQUEST_TTL,
+        constants.JOIN_CODE_TTL,
+        constants.JOIN_FAILURE_WINDOW,
     )
 
     if request.form.get("grant_type") != "authorization_code":
@@ -47,7 +53,9 @@ def token() -> Response:
     if row["client_id"] != client.client_id:
         return _error("invalid_grant", "The code was issued to a different client.")
     if request.form.get("redirect_uri") != row["redirect_uri"]:
-        return _error("invalid_grant", "redirect_uri does not match the authorization request.")
+        return _error(
+            "invalid_grant", "redirect_uri does not match the authorization request."
+        )
     if row["code_challenge"] is not None:
         verifier = request.form.get("code_verifier")
         if (
@@ -55,7 +63,9 @@ def token() -> Response:
             or not _VERIFIER.fullmatch(verifier)
             or not secrets.compare_digest(row["code_challenge"], _challenge(verifier))
         ):
-            return _error("invalid_grant", "code_verifier does not match code_challenge.")
+            return _error(
+                "invalid_grant", "code_verifier does not match code_challenge."
+            )
 
     access = CivAuth.random_token()
     civ().store.create_token(
@@ -67,8 +77,13 @@ def token() -> Response:
         now + constants.TOKEN_TTL,
     )
     return json_response(
-        {"access_token": access, "token_type": "Bearer", "expires_in": constants.TOKEN_TTL}
+        {
+            "access_token": access,
+            "token_type": "Bearer",
+            "expires_in": constants.TOKEN_TTL,
+        }
     )
+
 
 @bp.route("/oauth/user", methods=["GET"])
 def user() -> Response:
@@ -81,9 +96,11 @@ def user() -> Response:
         return response
     return json_response({"uuid": row["uuid"], "name": row["name"]})
 
+
 def _challenge(verifier: str) -> str:
     digest = hashlib.sha256(verifier.encode()).digest()
     return base64.urlsafe_b64encode(digest).decode().rstrip("=")
+
 
 def _client_credentials() -> tuple[str | None, str | None, bool]:
     auth = request.headers.get("Authorization")
@@ -93,7 +110,9 @@ def _client_credentials() -> tuple[str | None, str | None, bool]:
     if match is None:
         return None, None, False
     try:
-        decoded = base64.b64decode(match.group(1), validate=True).decode("utf-8", "surrogateescape")
+        decoded = base64.b64decode(match.group(1), validate=True).decode(
+            "utf-8", "surrogateescape"
+        )
     except (binascii.Error, ValueError):
         return None, None, False
     if ":" not in decoded:
@@ -107,6 +126,7 @@ def _client_credentials() -> tuple[str | None, str | None, bool]:
         body_secret is not None and not secrets.compare_digest(secret, body_secret)
     )
     return client_id, secret, conflict
+
 
 def _error(error: str, description: str) -> Response:
     return json_response({"error": error, "error_description": description}, 400)

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import secrets
 import unicodedata
@@ -17,6 +15,7 @@ TRIM = " \t\n\r\0\x0b"
 
 FORBIDDEN = frozenset({"Cc", "Cf", "Zl", "Zp"})
 
+
 @bp.route("/apps", methods=["GET", "POST"])
 def handle() -> Response:
     session = require_session()
@@ -25,9 +24,11 @@ def handle() -> Response:
     check_csrf(session)
     return create(session)
 
+
 @bp.get("/apps/new")
 def new() -> Response:
     return form(require_session(), None, [], blank())
+
 
 @bp.route("/apps/<client_id>", methods=["GET", "POST"])
 def app_page(client_id: str) -> Response:
@@ -40,6 +41,7 @@ def app_page(client_id: str) -> Response:
     check_csrf(session)
     return update(session, row)
 
+
 @bp.post("/apps/<client_id>/regenerate")
 def regenerate(client_id: str) -> Response:
     session = require_session()
@@ -49,6 +51,7 @@ def regenerate(client_id: str) -> Response:
     civ().store.set_app_secret(row["client_id"], civ().store.hash(secret), civ().now())
     return secret_page(row["client_id"], row["name"], secret)
 
+
 @bp.post("/apps/<client_id>/delete")
 def delete(client_id: str) -> Response:
     session = require_session()
@@ -57,6 +60,7 @@ def delete(client_id: str) -> Response:
     civ().store.delete_app(row["client_id"])
     return redirect_response(civ().config.url("/apps"))
 
+
 @bp.post("/signout")
 def signout() -> Response:
     session = civ().session()
@@ -64,6 +68,7 @@ def signout() -> Response:
     if session is not None and csrf is not None and equals(session["csrf"], csrf):
         civ().store.delete_session(session["hash"])
     return civ().clear_session_cookie(redirect_response(civ().config.url("/")))
+
 
 def require_session() -> dict:
     session = civ().session()
@@ -75,16 +80,19 @@ def require_session() -> dict:
 
     abort(start_login("/apps"))
 
+
 def check_csrf(session: dict) -> None:
     csrf = request.form.get("csrf")
     if csrf is None or not equals(session["csrf"], csrf):
         abort(civ().error_page("This form could not be verified", "", 400))
+
 
 def owned(client_id: str, session: dict) -> dict:
     row = civ().store.app(client_id)
     if row is None or row["owner_uuid"] != session["uuid"]:
         abort(civ().not_found())
     return row
+
 
 def index(session: dict) -> Response:
     rows = civ().store.apps_owned_by(session["uuid"])
@@ -97,7 +105,10 @@ def index(session: dict) -> Response:
     )
     return html_response(html)
 
-def form(session: dict, row: dict | None, errors: list[str], fields: dict[str, Any]) -> Response:
+
+def form(
+    session: dict, row: dict | None, errors: list[str], fields: dict[str, Any]
+) -> Response:
     editing = row is not None
     title = f"Edit {row['name']}" if editing else "Create an app"
     html = render_template(
@@ -118,6 +129,7 @@ def form(session: dict, row: dict | None, errors: list[str], fields: dict[str, A
     )
     return html_response(html, 200 if not errors else 400)
 
+
 def secret_page(client_id: str, name: str, secret: str) -> Response:
     html = render_template(
         "apps_secret.html",
@@ -128,6 +140,7 @@ def secret_page(client_id: str, name: str, secret: str) -> Response:
         apps_url=civ().config.url("/apps"),
     )
     return html_response(html)
+
 
 def create(session: dict) -> Response:
     fields = submitted()
@@ -154,6 +167,7 @@ def create(session: dict) -> Response:
             return secret_page(client_id, parsed["name"], secret)
     return form(session, None, ["Try again."], fields)
 
+
 def update(session: dict, row: dict) -> Response:
     fields = submitted()
     edited = row_action(fields)
@@ -162,11 +176,15 @@ def update(session: dict, row: dict) -> Response:
     errors, parsed = validate(fields)
     if errors:
         return form(session, row, errors, fields)
-    civ().store.update_app(row["client_id"], parsed["name"], parsed["redirect_uris"], civ().now())
+    civ().store.update_app(
+        row["client_id"], parsed["name"], parsed["redirect_uris"], civ().now()
+    )
     return redirect_response(url(row["client_id"]))
+
 
 def blank() -> dict[str, Any]:
     return {"name": "", "redirect_uris": [""]}
+
 
 def row_action(fields: dict[str, Any]) -> dict[str, Any] | None:
     action = request.form.get("action", "")
@@ -182,8 +200,10 @@ def row_action(fields: dict[str, Any]) -> dict[str, Any] | None:
         return {**fields, "redirect_uris": uris or [""]}
     return None
 
+
 def values(row: dict) -> dict[str, Any]:
     return {"name": row["name"], "redirect_uris": json.loads(row["redirect_uris"])}
+
 
 def submitted() -> dict[str, Any]:
     return {
@@ -191,10 +211,13 @@ def submitted() -> dict[str, Any]:
         "redirect_uris": request.form.getlist("redirect_uris[]") or [""],
     }
 
+
 def validate(fields: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
     errors: list[str] = []
     name = fields["name"].strip(TRIM)
-    if not 1 <= len(name) <= MAX_NAME or any(unicodedata.category(c) in FORBIDDEN for c in name):
+    if not 1 <= len(name) <= MAX_NAME or any(
+        unicodedata.category(c) in FORBIDDEN for c in name
+    ):
         errors.append("Invalid name.")
     trimmed = (uri.strip(TRIM) for uri in fields["redirect_uris"])
     redirects = list(dict.fromkeys(uri for uri in trimmed if uri))
@@ -207,8 +230,10 @@ def validate(fields: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
             errors.append(f"Invalid address: {uri}")
     return errors, {"name": name, "redirect_uris": redirects}
 
+
 def equals(known: str, given: str) -> bool:
     return secrets.compare_digest(known.encode(), given.encode())
+
 
 def url(client_id: str, action: str | None = None) -> str:
     path = "/apps/" + quote(client_id, safe="")
