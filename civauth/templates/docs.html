@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros.html" import note %}
+{% from "macros.html" import notice %}
 {% block title %}Docs{% endblock %}
 {% block body %}
   <div class="title">Docs</div>
@@ -53,7 +53,7 @@
   <div class="text">For now, there is no <span class="code">scope</span> parameter. Each app gets the user's Minecraft name and UUID.</div>
   <div class="text">Once the user approves your app, they are redirected to the url in <span class="code">redirect_uri</span>, with a code:</div>
   <div class="codeblock">https://example.com/callback?code=Qm9vbXNoYWthbGFrYQ&amp;state=8c1f0e</div>
-  {{ note('If the user declines, the callback contains <span class="code">error</span> and <span class="code">error_description</span> instead. See <a href="https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1">RFC 6749 §4.1.2.1</a>.') }}
+  {{ notice('If the user declines, the callback contains <span class="code">error</span> and <span class="code">error_description</span> instead. See <a href="https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1">RFC 6749 §4.1.2.1</a>.', label="Note") }}
   <div class="heading" id="exchange">3. Exchange the code for a token</div>
   <div class="text">Once you have a code from CivAuth, exchange it for a token by sending a POST to <span class="code">https://civauth.civwiki.org/oauth/token</span>:</div>
   <div class="codeblock">curl -d grant_type=authorization_code \
@@ -96,8 +96,8 @@
   <div class="codeblock">curl -H 'Authorization: Bearer oJ3kZQ8vT2mXpL5wR9bYcH1nAeKdG7sUfV4jMqW0xEo' {{ issuer }}/oauth/user</div>
   <div class="codeblock">{"uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5", "name": "Notch"}</div>
   <div class="text">This returns the UUID and name of the Minecraft account.</div>
-  <div class="heading" id="refresh">5. Refresh the token</div>
-  <div class="text">When the access token expires, you can refresh it using the refresh token. POST to <span class="code">https://civauth.civwiki.org/oauth/token</span>:</div>
+  <div class="heading" id="refresh">5. Refresh an access token</div>
+  <div class="text">When an access token expires, you can refresh it using the refresh token. POST to <span class="code">https://civauth.civwiki.org/oauth/token</span>:</div>
   <div class="codeblock">curl -d grant_type=refresh_token \
   -d client_id=3f9a1c \
   -d client_secret=CLIENT_SECRET \
