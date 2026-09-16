@@ -102,6 +102,7 @@ def index(session: dict) -> Response:
         apps=[{"name": row["name"], "url": url(row["client_id"])} for row in rows],
         can_create=len(rows) < MAX_PER_OWNER,
         new_url=url("new"),
+        docs_url=civ().config.path("/docs"),
     )
     return html_response(html)
 
@@ -138,6 +139,7 @@ def secret_page(client_id: str, name: str, secret: str) -> Response:
         client_id=client_id,
         secret=secret,
         apps_url=civ().config.path("/apps"),
+        docs_url=civ().config.path("/docs"),
     )
     return html_response(html)
 

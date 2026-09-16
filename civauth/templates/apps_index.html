@@ -2,6 +2,7 @@
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
   <div class="title">OAuth apps</div>
+  <div class="text">OAuth apps let your site sign people in with their Minecraft account. <a href="{{ docs_url }}">See the docs for details</a>.</div>
   {% if apps %}
     <div class="cards">
       {% for app in apps %}

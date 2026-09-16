@@ -26,6 +26,7 @@ def authorize() -> Response:
         constants.REQUEST_TTL,
         constants.JOIN_CODE_TTL,
         constants.JOIN_FAILURE_WINDOW,
+        constants.REPLAY_WINDOW,
     )
     client_id = request.args.get("client_id", "")
     client = auth.client(client_id)

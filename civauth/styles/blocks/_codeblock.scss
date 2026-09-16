@@ -1,0 +1,16 @@
+.codeblock {
+  margin: 0.8rem 0;
+  padding: 0.6rem 0.8rem;
+  background: $shade;
+  border: 1px solid $border;
+  border-radius: 2px;
+  font-family: $mono;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  overflow-x: auto;
+  white-space: pre;
+
+  &__comment {
+    color: $muted;
+  }
+}

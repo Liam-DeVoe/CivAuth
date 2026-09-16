@@ -21,7 +21,6 @@ from civauth.store import Store
 
 
 class Client:
-
     def __init__(self, row: dict) -> None:
         import json
 
@@ -50,7 +49,6 @@ class Client:
 
 
 class CivAuth:
-
     def __init__(
         self,
         config: Config,
@@ -166,6 +164,10 @@ def _quote(
     return quote(str(string), safe="~-._")
 
 
+def hyphenated(uuid: str) -> str:
+    return "-".join((uuid[:8], uuid[8:12], uuid[12:16], uuid[16:20], uuid[20:]))
+
+
 def html_response(html: str, status: int = 200) -> Response:
     response = make_response(html, status)
     response.headers["Content-Type"] = "text/html; charset=utf-8"
@@ -227,6 +229,7 @@ def create_app(config: Config | None = None) -> Flask:
         apps,
         authorize,
         avatar,
+        docs,
         join,
         login,
         passkey,
@@ -238,7 +241,8 @@ def create_app(config: Config | None = None) -> Flask:
     config = config or Config.from_module(secret)
     store = Store(config.database)
 
-    app = Flask(__name__, static_folder=None)
+    prefix = config.issuer_path
+    app = Flask(__name__, static_url_path=f"{prefix}/static")
     app.url_map.strict_slashes = False
     app.extensions["civauth"] = CivAuth(
         config,
@@ -251,7 +255,6 @@ def create_app(config: Config | None = None) -> Flask:
         lambda: int(time.time()),
     )
 
-    prefix = config.issuer_path
     for blueprint in (
         authorize.bp,
         login.bp,
@@ -263,6 +266,7 @@ def create_app(config: Config | None = None) -> Flask:
         permissions.bp,
         style.bp,
         apps.bp,
+        docs.bp,
     ):
         app.register_blueprint(blueprint, url_prefix=prefix or None)
 

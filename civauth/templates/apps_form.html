@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import confirm %}
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
   <div class="title">{{ title }}</div>
@@ -76,18 +77,46 @@
   {% if editing %}
     <div class="heading section-title">Manage</div>
     <div class="actions">
-      <form method="post" action="{{ regenerate_url }}">
+      <form method="post" action="{{ regenerate_url }}" id="regenerate" data-confirm="confirm-regenerate">
         <input type="hidden"
                name="csrf"
                value="{{ csrf }}"><button type="submit"
         class="button button--danger">Regenerate secret</button>
       </form>
-      <form method="post" action="{{ delete_url }}">
+      <form method="post" action="{{ delete_url }}" id="delete" data-confirm="confirm-delete">
         <input type="hidden"
                name="csrf"
                value="{{ csrf }}"><button type="submit"
         class="button button--danger">Delete app</button>
       </form>
     </div>
+    {{ confirm("confirm-regenerate", "Regenerate secret?",
+               "This will revoke the current secret and create a new one.",
+               "Regenerate secret") }}
+    {{ confirm("confirm-delete", "Delete " ~ name ~ "?",
+               "This cannot be undone.",
+               "Delete app") }}
+    <script nonce="{{ nonce }}">(function () {
+  document.querySelectorAll("form[data-confirm]").forEach(function (form) {
+    var dialog = document.getElementById(form.dataset.confirm);
+    if (!dialog || !dialog.showModal) return;
+    form.addEventListener("submit", function (e) {
+      if (form.dataset.confirmed) return;
+      e.preventDefault();
+      dialog.showModal();
+    });
+    dialog.querySelector("[data-cancel]").addEventListener("click", function () { dialog.close(); });
+    dialog.addEventListener("click", function (e) {
+      var r = dialog.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dialog.close();
+    });
+    dialog.querySelector("[data-confirm]").addEventListener("click", function () {
+      form.dataset.confirmed = "1";
+      dialog.close();
+      form.requestSubmit();
+    });
+  });
+})();
+    </script>
   {% endif %}
 {% endblock %}

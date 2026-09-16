@@ -15,8 +15,20 @@
 }
 
 .code {
+  padding: 0.1em 0.25em;
+  border: 1px solid $line;
+  border-radius: 2px;
+  background: $shade;
   font-family: $mono;
-  font-size: 0.95em;
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+
+  .grid th & {
+    padding: 0;
+    border: 0;
+    background: none;
+    overflow-wrap: normal;
+  }
 }
 
 .rule {

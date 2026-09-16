@@ -32,6 +32,22 @@
     }
   }
 
+  &--note {
+    display: block;
+  }
+
+  &__label {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin-bottom: 0.3rem;
+    font-weight: 700;
+
+    .message__icon {
+      margin-top: 0;
+    }
+  }
+
   &--notice {
     background: $tint;
     border-color: $link;

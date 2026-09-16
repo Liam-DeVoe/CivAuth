@@ -1,0 +1,28 @@
+.dialog {
+  width: 26rem;
+  margin: auto;
+  max-width: calc(100vw - 2 * var(--gutter));
+  box-sizing: border-box;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid $border;
+  border-radius: 2px;
+  background: $surface;
+  color: $text;
+  box-shadow: 0 8px 24px $shadow;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  &__title {
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+  }
+}

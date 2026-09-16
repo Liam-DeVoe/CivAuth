@@ -2,6 +2,9 @@ import hashlib
 import json
 import sqlite3
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sessions (
@@ -47,6 +50,18 @@ CREATE TABLE IF NOT EXISTS tokens (
     name TEXT NOT NULL,
     expires_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    hash TEXT PRIMARY KEY,
+    code_hash TEXT NOT NULL,
+    client_id TEXT NOT NULL,
+    uuid TEXT NOT NULL,
+    name TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    used INTEGER NOT NULL DEFAULT 0,
+    used_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS refresh_tokens_code ON refresh_tokens (code_hash);
+CREATE INDEX IF NOT EXISTS tokens_code ON tokens (code_hash);
 CREATE TABLE IF NOT EXISTS apps (
     client_id TEXT PRIMARY KEY,
     secret_hash TEXT NOT NULL,
@@ -94,6 +109,18 @@ CREATE TABLE IF NOT EXISTS avatars (
     fetched_at INTEGER NOT NULL
 );
 """
+
+
+@dataclass(frozen=True)
+class TokenPair:
+    access_hash: str
+    refresh_hash: str
+    code_hash: str
+    client_id: str
+    uuid: str
+    name: str
+    access_expires_at: int
+    refresh_expires_at: int
 
 
 class Store:
@@ -222,33 +249,65 @@ class Store:
     def code(self, hash: str) -> dict | None:
         return self._one("SELECT * FROM codes WHERE hash = ?", (hash,))
 
-    def consume_code(self, hash: str) -> bool:
-        return (
-            self._write(
-                "UPDATE codes SET used = 1 WHERE hash = ? AND used = 0", (hash,)
-            )
-            == 1
-        )
+    def exchange_code(self, code_hash: str, pair: TokenPair | None) -> bool:
+        with self._transaction() as db:
+            used = db.execute(
+                "UPDATE codes SET used = 1 WHERE hash = ? AND used = 0", (code_hash,)
+            ).rowcount
+            if used != 1:
+                return False
+            if pair is not None:
+                self._mint(db, pair)
+        return True
 
-    def create_token(
-        self,
-        hash: str,
-        code_hash: str,
-        client_id: str,
-        uuid: str,
-        name: str,
-        expires_at: int,
-    ) -> None:
-        self._write(
-            "INSERT INTO tokens (hash, code_hash, client_id, uuid, name, expires_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (hash, code_hash, client_id, uuid, name, expires_at),
+    def rotate_refresh_token(self, hash: str, now: int, pair: TokenPair) -> bool:
+        with self._transaction() as db:
+            used = db.execute(
+                "UPDATE refresh_tokens SET used = 1, used_at = ? WHERE hash = ? AND used = 0",
+                (now, hash),
+            ).rowcount
+            if used != 1:
+                return False
+            self._mint(db, pair)
+        return True
+
+    @staticmethod
+    def _mint(db: sqlite3.Connection, pair: TokenPair) -> None:
+        db.execute(
+            "INSERT INTO tokens (hash, code_hash, client_id, uuid, name, expires_at)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                pair.access_hash,
+                pair.code_hash,
+                pair.client_id,
+                pair.uuid,
+                pair.name,
+                pair.access_expires_at,
+            ),
+        )
+        db.execute(
+            "INSERT INTO refresh_tokens (hash, code_hash, client_id, uuid, name, expires_at)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                pair.refresh_hash,
+                pair.code_hash,
+                pair.client_id,
+                pair.uuid,
+                pair.name,
+                pair.refresh_expires_at,
+            ),
         )
 
     def revoke_tokens_for_code(self, code_hash: str) -> None:
-        self._write("DELETE FROM tokens WHERE code_hash = ?", (code_hash,))
+        with self._transaction() as db:
+            for table in ("tokens", "refresh_tokens"):
+                db.execute(f"DELETE FROM {table} WHERE code_hash = ?", (code_hash,))
 
     def token(self, hash: str) -> dict | None:
         return self._one("SELECT * FROM tokens WHERE hash = ?", (hash,))
+
+    def refresh_token(self, hash: str) -> dict | None:
+        return self._one("SELECT * FROM refresh_tokens WHERE hash = ?", (hash,))
 
     def app(self, client_id: str) -> dict | None:
         return self._one("SELECT * FROM apps WHERE client_id = ?", (client_id,))
@@ -329,7 +388,7 @@ class Store:
             removed = self._db.execute(
                 "DELETE FROM grants WHERE uuid = ? AND client_id = ?", (uuid, client_id)
             ).rowcount
-            for table in ("tokens", "codes"):
+            for table in ("tokens", "refresh_tokens", "codes"):
                 self._db.execute(
                     f"DELETE FROM {table} WHERE uuid = ? AND client_id = ?",
                     (uuid, client_id),
@@ -338,7 +397,7 @@ class Store:
 
     def delete_app(self, client_id: str) -> None:
         with self._lock:
-            for table in ("tokens", "codes", "grants", "apps"):
+            for table in ("tokens", "refresh_tokens", "codes", "grants", "apps"):
                 self._db.execute(
                     f"DELETE FROM {table} WHERE client_id = ?", (client_id,)
                 )
@@ -452,15 +511,27 @@ class Store:
         )
 
     def purge(
-        self, now: int, request_ttl: int, join_code_ttl: int, failure_window: int
+        self,
+        now: int,
+        request_ttl: int,
+        join_code_ttl: int,
+        failure_window: int,
+        replay_window: int,
     ) -> None:
         with self._lock:
             self._db.execute("DELETE FROM sessions WHERE expires_at < ?", (now,))
             self._db.execute(
                 "DELETE FROM requests WHERE created_at < ?", (now - request_ttl,)
             )
-            self._db.execute("DELETE FROM codes WHERE expires_at < ?", (now,))
+            self._db.execute(
+                "DELETE FROM codes WHERE expires_at < ? AND (used = 0 OR expires_at < ?)",
+                (now, now - replay_window),
+            )
             self._db.execute("DELETE FROM tokens WHERE expires_at < ?", (now,))
+            self._db.execute(
+                "DELETE FROM refresh_tokens WHERE expires_at < ? OR (used = 1 AND used_at < ?)",
+                (now, now - replay_window),
+            )
             self._db.execute(
                 "DELETE FROM join_codes WHERE created_at < ?", (now - join_code_ttl,)
             )
@@ -480,3 +551,14 @@ class Store:
     def _write(self, sql: str, args: tuple) -> int:
         with self._lock:
             return self._db.execute(sql, args).rowcount
+
+    @contextmanager
+    def _transaction(self) -> Iterator[sqlite3.Connection]:
+        with self._lock:
+            self._db.execute("BEGIN IMMEDIATE")
+            try:
+                yield self._db
+            except BaseException:
+                self._db.execute("ROLLBACK")
+                raise
+            self._db.execute("COMMIT")

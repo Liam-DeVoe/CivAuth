@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 bp = Blueprint("avatar", __name__)
 
+UUID = re.compile(r"[0-9a-f]{32}|[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}")
 PROFILE_URL = "https://sessionserver.mojang.com/session/minecraft/profile/"
 TEXTURES_HOST = "textures.minecraft.net"
 USER_AGENT = "civauth-avatar/1.0"
@@ -46,8 +47,9 @@ class Unavailable(Exception):
 @bp.route("/avatar/<uuid>.png", methods=["GET"])
 def head(uuid: str) -> Response:
     app = civ()
-    if not re.fullmatch(r"[0-9a-f]{32}", uuid):
+    if not UUID.fullmatch(uuid):
         return app.not_found()
+    uuid = uuid.replace("-", "")
     now = app.now()
     cached = app.store.avatar(uuid)
     if cached is not None and now - int(cached["fetched_at"]) < MAX_AGE:

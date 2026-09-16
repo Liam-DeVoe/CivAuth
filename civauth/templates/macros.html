@@ -1,0 +1,36 @@
+{% macro warning(content) -%}
+  <div class="message message--warning" role="alert">
+    <svg class="message__icon" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 1 1 18h18zm0 3.9L16.2 16H3.8zM9 8h2v4H9zm0 5h2v2H9z" />
+    </svg>
+    <div class="message__body">{{ content|safe }}</div>
+  </div>
+{%- endmacro -%}
+{% macro notice(content) -%}
+  <div class="message message--notice">
+    <svg class="message__icon" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 0a10 10 0 1 0 10 10A10 10 0 0 0 10 0zM9 5h2v2H9zm0 4h2v6H9z" />
+    </svg>
+    <div class="message__body">{{ content|safe }}</div>
+  </div>
+{%- endmacro -%}
+{% macro confirm(id, title, body, action) -%}
+  <dialog class="dialog" id="{{ id }}">
+    <div class="dialog__title">{{ title }}</div>
+    <div class="text">{{ body }}</div>
+    <div class="dialog__actions">
+      <button type="button" class="button button--plain" data-cancel>Cancel</button>
+      <button type="button" class="button button--danger" data-confirm>{{ action }}</button>
+    </div>
+  </dialog>
+{%- endmacro -%}
+{% macro note(content) -%}
+  <div class="message message--notice message--note">
+    <div class="message__label">
+      <svg class="message__icon" viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M10 0a10 10 0 1 0 10 10A10 10 0 0 0 10 0zM9 4h2v8H9zm0 9h2v2H9z" />
+      </svg>Note
+    </div>
+    <div class="message__body">{{ content|safe }}</div>
+  </div>
+{%- endmacro -%}

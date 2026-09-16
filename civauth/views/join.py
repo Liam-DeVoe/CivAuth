@@ -73,6 +73,7 @@ def issue() -> Response:
         constants.REQUEST_TTL,
         constants.JOIN_CODE_TTL,
         constants.JOIN_FAILURE_WINDOW,
+        constants.REPLAY_WINDOW,
     )
     for _ in range(5):
         code = f"{secrets.randbelow(1000000):06d}"

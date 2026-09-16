@@ -5,7 +5,7 @@ from flask import Blueprint, Response, abort, render_template, request
 from markupsafe import Markup
 from werkzeug.security import generate_password_hash
 
-from civauth import civ, html_response
+from civauth import civ, html_response, hyphenated
 
 bp = Blueprint("account", __name__)
 
@@ -85,7 +85,7 @@ def page(session: dict, message: str | None, error: str | None) -> Response:
         "account.html",
         title="Your account",
         name=session["name"],
-        uuid=session["uuid"],
+        uuid=hyphenated(session["uuid"]),
         has_password=account is not None and account["password_hash"] is not None,
         passkeys=[
             {"credential_id": row["credential_id"], "added": added(row["created_at"])}
@@ -116,7 +116,7 @@ def page(session: dict, message: str | None, error: str | None) -> Response:
 def owner(row: dict) -> str:
     if not row["owner_uuid"]:
         return "CivAuth"
-    return row["owner_name"] or row["owner_uuid"]
+    return row["owner_name"] or hyphenated(row["owner_uuid"])
 
 
 def added(created_at: int) -> str:
