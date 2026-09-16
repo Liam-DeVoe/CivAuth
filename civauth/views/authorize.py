@@ -73,7 +73,7 @@ def authorize() -> Response:
 def start_login(return_to: str) -> Response:
     if return_to not in RETURN_TO:
         raise ValueError(f"not a page a login may return to: {return_to}")
-    return start(redirect_response(civ().config.url("/")), {"return_to": return_to})
+    return start(redirect_response(civ().config.path("/")), {"return_to": return_to})
 
 
 def start(response: Response, params: dict) -> Response:
@@ -161,9 +161,9 @@ def signed_in(params: dict, uuid: str, name: str) -> Response:
 
     if params.get("return_to") is not None:
         return_to = params["return_to"] if params["return_to"] in RETURN_TO else "/"
-        response = finish(redirect_response(auth.config.url(return_to)))
+        response = finish(redirect_response(auth.config.path(return_to)))
     elif params.get("client_id") is None:
-        response = finish(redirect_response(auth.config.url("/account")))
+        response = finish(redirect_response(auth.config.path("/account")))
     else:
         response = proceed(params, session)
     return auth.set_session_cookie(response, token)
@@ -252,7 +252,7 @@ def login_failed(params: dict, message: str) -> Response:
             "Login failed",
             message,
             200,
-            actions(auth.config.url(return_to), auth.config.url("/account")),
+            actions(auth.config.path(return_to), auth.config.path("/account")),
         )
 
     retry: dict = {
@@ -274,7 +274,7 @@ def login_failed(params: dict, message: str) -> Response:
         message,
         200,
         actions(
-            CivAuth.append_query(auth.config.url("/oauth/authorize"), retry),
+            CivAuth.append_query(auth.config.path("/oauth/authorize"), retry),
             CivAuth.append_query(params["redirect_uri"], cancel),
         ),
     )

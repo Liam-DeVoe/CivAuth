@@ -281,8 +281,8 @@ def create_app(config: Config | None = None) -> Flask:
         session = auth.session()
         return {
             "account": session,
-            "url": auth.config.url,
-            "stylesheet": auth.config.url(f"/style.css?v={style.VERSION}"),
+            "url": auth.config.path,
+            "stylesheet": auth.config.path(f"/style.css?v={style.VERSION}"),
             "nonce": script_nonce(),
         }
 

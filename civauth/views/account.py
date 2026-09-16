@@ -91,8 +91,8 @@ def page(session: dict, message: str | None, error: str | None) -> Response:
             {"credential_id": row["credential_id"], "added": added(row["created_at"])}
             for row in auth.store.passkeys_for(session["uuid"])
         ],
-        password_url=auth.config.url("/account/password"),
-        remove_url=auth.config.url("/account/passkeys/delete"),
+        password_url=auth.config.path("/account/password"),
+        remove_url=auth.config.path("/account/passkeys/delete"),
         grants=[
             {
                 "name": row["name"],
@@ -102,10 +102,10 @@ def page(session: dict, message: str | None, error: str | None) -> Response:
             }
             for row in grants
         ],
-        revoke_url=auth.config.url("/account/apps/remove"),
-        passkey_options_url=auth.config.url("/account/passkey/options"),
-        passkey_verify_url=auth.config.url("/account/passkey/verify"),
-        passkey_done_url=auth.config.url("/account?added=passkey"),
+        revoke_url=auth.config.path("/account/apps/remove"),
+        passkey_options_url=auth.config.path("/account/passkey/options"),
+        passkey_verify_url=auth.config.path("/account/passkey/verify"),
+        passkey_done_url=auth.config.path("/account?added=passkey"),
         csrf=session["csrf"],
         message=message,
         error=error,

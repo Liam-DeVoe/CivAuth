@@ -45,6 +45,9 @@ class Config:
             }
         )
 
+    def path(self, route: str) -> str:
+        return self.issuer_path + route
+
     def url(self, route: str) -> str:
         return self.issuer + route
 

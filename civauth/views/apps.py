@@ -58,7 +58,7 @@ def delete(client_id: str) -> Response:
     row = owned(client_id, session)
     check_csrf(session)
     civ().store.delete_app(row["client_id"])
-    return redirect_response(civ().config.url("/apps"))
+    return redirect_response(civ().config.path("/apps"))
 
 
 @bp.post("/signout")
@@ -67,7 +67,7 @@ def signout() -> Response:
     csrf = request.form.get("csrf")
     if session is not None and csrf is not None and equals(session["csrf"], csrf):
         civ().store.delete_session(session["hash"])
-    return civ().clear_session_cookie(redirect_response(civ().config.url("/")))
+    return civ().clear_session_cookie(redirect_response(civ().config.path("/")))
 
 
 def require_session() -> dict:
@@ -117,13 +117,13 @@ def form(
         editing=editing,
         errors=errors,
         csrf=session["csrf"],
-        action=url(row["client_id"]) if editing else civ().config.url("/apps"),
+        action=url(row["client_id"]) if editing else civ().config.path("/apps"),
         client_id=row["client_id"] if editing else None,
         name=fields["name"],
         redirect_uris=fields["redirect_uris"],
         max_name=MAX_NAME,
         max_uris=MAX_URIS,
-        apps_url=civ().config.url("/apps"),
+        apps_url=civ().config.path("/apps"),
         regenerate_url=url(row["client_id"], "regenerate") if editing else None,
         delete_url=url(row["client_id"], "delete") if editing else None,
     )
@@ -137,7 +137,7 @@ def secret_page(client_id: str, name: str, secret: str) -> Response:
         name=name,
         client_id=client_id,
         secret=secret,
-        apps_url=civ().config.url("/apps"),
+        apps_url=civ().config.path("/apps"),
     )
     return html_response(html)
 
@@ -237,4 +237,4 @@ def equals(known: str, given: str) -> bool:
 
 def url(client_id: str, action: str | None = None) -> str:
     path = "/apps/" + quote(client_id, safe="")
-    return civ().config.url(path if action is None else f"{path}/{action}")
+    return civ().config.path(path if action is None else f"{path}/{action}")

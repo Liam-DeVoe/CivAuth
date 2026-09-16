@@ -17,7 +17,7 @@ def page() -> Response:
         req = None
     if req is None:
         if auth.session() is not None:
-            return redirect_response(auth.config.url("/account"))
+            return redirect_response(auth.config.path("/account"))
         return start_login("/account")
     auth.store.touch_request(req["id"], auth.now())
     return login_page()
