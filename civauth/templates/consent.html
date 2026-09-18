@@ -3,7 +3,7 @@
 {% block body_class %}page-consent{% endblock %}
 {% block topbar %}{% endblock %}
 {% block main %}
-  <form method="post" class="consent">
+  <form method="post" action="{{ url('/oauth/authorize') }}" class="consent">
     <input type="hidden" name="method" value="consent">
     <input type="hidden" name="csrf" value="{{ csrf }}">
     <div class="consent__head">

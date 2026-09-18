@@ -18,6 +18,7 @@ JOIN_FAILURE_WINDOW = 600
 
 SESSION_COOKIE = "civauth_session"
 FLOW_COOKIE = "civauth_flow"
+SAVED_COOKIE = "civauth_saved"
 
 MAX_PER_OWNER = 10
 CLIENT_ID_LENGTH = 6

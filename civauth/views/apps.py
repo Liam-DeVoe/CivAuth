@@ -7,7 +7,7 @@ from urllib.parse import quote
 from flask import Blueprint, Response, abort, render_template, request
 
 from civauth import CivAuth, Client, civ, html_response, redirect_response
-from civauth.constants import MAX_NAME, MAX_PER_OWNER, MAX_URIS
+from civauth.constants import MAX_NAME, MAX_PER_OWNER, MAX_URIS, SAVED_COOKIE
 
 bp = Blueprint("apps", __name__)
 
@@ -37,7 +37,7 @@ def app_page(client_id: str) -> Response:
         return civ().method_not_allowed(["GET"])
     row = owned(client_id, session)
     if request.method == "GET":
-        return form(session, row, [], values(row))
+        return form(session, row, [], values(row), message=saved_message())
     check_csrf(session)
     return update(session, row)
 
@@ -108,7 +108,11 @@ def index(session: dict) -> Response:
 
 
 def form(
-    session: dict, row: dict | None, errors: list[str], fields: dict[str, Any]
+    session: dict,
+    row: dict | None,
+    errors: list[str],
+    fields: dict[str, Any],
+    message: str | None = None,
 ) -> Response:
     editing = row is not None
     title = f"Edit {row['name']}" if editing else "Create an app"
@@ -116,6 +120,7 @@ def form(
         "apps_form.html",
         title=title,
         editing=editing,
+        message=message,
         errors=errors,
         csrf=session["csrf"],
         action=url(row["client_id"]) if editing else civ().config.path("/apps"),
@@ -128,7 +133,16 @@ def form(
         regenerate_url=url(row["client_id"], "regenerate") if editing else None,
         delete_url=url(row["client_id"], "delete") if editing else None,
     )
-    return html_response(html, 200 if not errors else 400)
+    response = html_response(html, 200 if not errors else 400)
+    if message is not None:
+        civ().set_cookie(response, SAVED_COOKIE, "", 0, expire_now=True)
+    return response
+
+
+def saved_message() -> str | None:
+    if request.cookies.get(SAVED_COOKIE) != "1":
+        return None
+    return "Saved."
 
 
 def secret_page(client_id: str, name: str, secret: str) -> Response:
@@ -181,7 +195,8 @@ def update(session: dict, row: dict) -> Response:
     civ().store.update_app(
         row["client_id"], parsed["name"], parsed["redirect_uris"], civ().now()
     )
-    return redirect_response(url(row["client_id"]))
+    response = redirect_response(url(row["client_id"]))
+    return civ().set_cookie(response, SAVED_COOKIE, "1", 60)
 
 
 def blank() -> dict[str, Any]:

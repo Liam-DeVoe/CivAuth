@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% from "macros.html" import confirm %}
+{% from "macros.html" import confirm, notice %}
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
   <div class="title">{{ title }}</div>
+  {% if message %}{{ notice(message) }}{% endif %}
   {% for error in errors %}
     <div class="text text--error">{{ error }}</div>
   {% endfor %}
