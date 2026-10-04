@@ -22,6 +22,17 @@
   --warning-mark: #f2b24a;
 
   --shadow: rgba(0, 0, 0, 0.5);
+
+  --link-hover: #a6bbf5;
+  --link-active: #b6d4fb;
+  --plain-hover: #233566;
+  --plain-active: #3056a9;
+  --danger-hover: #fea898;
+  --danger-active: #ffc8bd;
+  --danger-tint-hover: #612419;
+  --danger-tint-active: #9f3526;
+  --focus: #6485d1;
+  --focus-inset: #000;
 }
 
 :root {
@@ -53,6 +64,19 @@
   --accent-danger: #d33;
   --accent-done: #14866d;
   --on-accent: #fff;
+
+  --accent-hover: #3056a9;
+  --accent-active: #233566;
+  --link-hover: #3056a9;
+  --link-active: #233566;
+  --plain-hover: #d9e2ff;
+  --plain-active: #b6d4fb;
+  --danger-hover: #9f3526;
+  --danger-active: #612419;
+  --danger-tint-hover: #ffdad3;
+  --danger-tint-active: #ffc8bd;
+  --focus: #36c;
+  --focus-inset: #fff;
 
   --page: 50rem;
   --gutter: 2rem;
@@ -93,6 +117,19 @@ $accent: var(--accent);
 $accent-danger: var(--accent-danger);
 $accent-done: var(--accent-done);
 $on-accent: var(--on-accent);
+
+$accent-hover: var(--accent-hover);
+$accent-active: var(--accent-active);
+$link-hover: var(--link-hover);
+$link-active: var(--link-active);
+$plain-hover: var(--plain-hover);
+$plain-active: var(--plain-active);
+$danger-hover: var(--danger-hover);
+$danger-active: var(--danger-active);
+$danger-tint-hover: var(--danger-tint-hover);
+$danger-tint-active: var(--danger-tint-active);
+$focus: var(--focus);
+$focus-inset: var(--focus-inset);
 
 $mono: ui-monospace, Menlo, monospace;
 $sans: system-ui, -apple-system, "Segoe UI", sans-serif;

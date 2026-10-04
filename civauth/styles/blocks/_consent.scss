@@ -7,7 +7,7 @@
   box-shadow: 0 2px 6px $shadow;
 
   &__head {
-    padding: 1.1rem 1.4rem 0.2rem;
+    padding: 1.4rem 1.4rem 0.2rem;
   }
 
   &__kicker {
@@ -31,7 +31,7 @@
   }
 
   &__body {
-    padding: 0.4rem 1.4rem 1rem;
+    padding: 0.4rem 1.4rem 1.4rem;
 
     .text:first-child {
       margin-top: 0;
@@ -109,7 +109,7 @@
   }
 
   &__methods {
-    padding: 1rem 1.4rem 1.1rem;
+    padding: 1.4rem 1.4rem 1.5rem;
     border-top: 1px solid $line;
     background: $shade;
 
@@ -119,22 +119,21 @@
     }
 
     .secret {
+      padding: 0.45rem 0.7rem;
       background: color-mix(in srgb, #{$line} 50%, #{$shade});
+      font-family: $mono;
+      font-size: 0.95rem;
     }
 
     .actions {
-      margin-top: 1rem;
+      flex-wrap: nowrap;
     }
   }
 
   &__title {
+    font-size: 1.1rem;
     font-weight: 700;
-  }
-
-  &__hint {
-    margin: 0.2rem 0 0.5rem;
-    color: $muted;
-    font-size: 0.9rem;
+    line-height: 1.3;
   }
 }
 

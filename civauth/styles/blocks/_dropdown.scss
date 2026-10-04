@@ -2,6 +2,15 @@
   position: relative;
   display: inline-flex;
 
+  &--fill {
+    flex: 1;
+
+    .dropdown__main {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
   &__main {
     padding-left: 1.26rem;
     padding-right: 1.26rem;
@@ -17,8 +26,13 @@
     align-items: center;
     padding: 0.4rem 0.34rem;
     border-radius: 0 2px 2px 0;
-    border-left-color: rgba(255, 255, 255, 0.4);
     list-style: none;
+
+    &,
+    &:hover,
+    &:active {
+      border-left-color: rgba(255, 255, 255, 0.4);
+    }
 
     &::-webkit-details-marker {
       display: none;

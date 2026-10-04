@@ -1,0 +1,39 @@
+.steps {
+  margin: 1rem 0 0;
+  list-style: none;
+  counter-reset: step;
+
+  &__item {
+    position: relative;
+    padding-left: 2.1rem;
+    counter-increment: step;
+
+    & + & {
+      margin-top: 1.2rem;
+    }
+
+    &::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0.05rem;
+      width: 1.45rem;
+      height: 1.45rem;
+      border-radius: 50%;
+      background: $accent;
+      color: $on-accent;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1.45rem;
+      text-align: center;
+    }
+
+    .input-row {
+      margin-top: 0.45rem;
+    }
+
+    .otp {
+      margin-top: 0.5rem;
+    }
+  }
+}
