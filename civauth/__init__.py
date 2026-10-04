@@ -225,7 +225,6 @@ def create_app(config: Config | None = None) -> Flask:
     import secret
     from civauth.minecraft import MojangChain
     from civauth.views import (
-        about,
         account,
         apps,
         authorize,
@@ -268,7 +267,6 @@ def create_app(config: Config | None = None) -> Flask:
         style.bp,
         apps.bp,
         docs.bp,
-        about.bp,
     ):
         app.register_blueprint(blueprint, url_prefix=prefix or None)
 

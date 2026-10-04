@@ -49,8 +49,8 @@
   </div>
 {%- endmacro -%}
 {% macro brand() -%}
-  <a class="consent__brand" href="{{ url('/about') }}" target="_blank" rel="noopener">
+  <span class="consent__brand">
     <img src="{{ url_for('static', filename='icon.svg') }}" width="18" height="18" alt="">
     CivAuth
-  </a>
+  </span>
 {%- endmacro -%}
