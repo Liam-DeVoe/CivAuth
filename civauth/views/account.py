@@ -5,15 +5,37 @@ from flask import Blueprint, Response, abort, render_template, request
 from markupsafe import Markup
 from werkzeug.security import generate_password_hash
 
-from civauth import civ, html_response, hyphenated
+from civauth import civ, html_response, hyphenated, redirect_response
+from civauth.constants import NOTICE_COOKIE
 
 bp = Blueprint("account", __name__)
+
+MESSAGES = {
+    "password-set": "Password set.",
+    "password-changed": "Password changed.",
+    "passkey-added": "Passkey added.",
+    "passkey-removed": "That passkey has been removed.",
+}
+ERRORS = {
+    "empty-password": "Enter a password.",
+    "app-gone": "That app has already been removed.",
+    "passkey-gone": "That passkey has already been removed.",
+}
 
 
 @bp.get("/account")
 def index() -> Response:
-    message = "Passkey added." if request.args.get("added") else None
-    return page(require_session(), message, None)
+    session = require_session()
+    notice = request.cookies.get(NOTICE_COOKIE, "")
+    message = MESSAGES.get(notice)
+    if notice.startswith("app-removed:"):
+        app = civ().store.app(notice.removeprefix("app-removed:"))
+        name = "That app" if app is None else app["name"]
+        message = Markup("Removed {} from authorized apps.").format(name)
+    response = page(session, message, ERRORS.get(notice))
+    if notice:
+        civ().clear_cookie(response, NOTICE_COOKIE)
+    return response
 
 
 @bp.post("/account/password")
@@ -25,11 +47,9 @@ def password() -> Response:
     stored = None if account is None else account["password_hash"]
     new = request.form.get("new", "")
     if not new:
-        return page(session, None, "Enter a password.")
+        return back("empty-password")
     auth.store.set_password(session["uuid"], generate_password_hash(new), auth.now())
-    if stored is None:
-        return page(session, "Password set.", None)
-    return page(session, "Password changed.", None)
+    return back("password-set" if stored is None else "password-changed")
 
 
 @bp.post("/account/apps/remove")
@@ -38,11 +58,9 @@ def remove_app() -> Response:
     session = require_session()
     check_csrf(session)
     client_id = request.form.get("client_id", "")
-    app = auth.store.app(client_id)
     if not auth.store.delete_grant(session["uuid"], client_id):
-        return page(session, None, "That app has already been removed.")
-    name = "That app" if app is None else app["name"]
-    return page(session, Markup("Removed {} from authorized apps.").format(name), None)
+        return back("app-gone")
+    return back(f"app-removed:{client_id}")
 
 
 @bp.post("/account/passkeys/delete")
@@ -52,8 +70,13 @@ def remove_passkey() -> Response:
     check_csrf(session)
     credential_id = request.form.get("credential_id", "")
     if not auth.store.delete_passkey(credential_id, session["uuid"]):
-        return page(session, None, "That passkey is already gone.")
-    return page(session, "That passkey has been removed.", None)
+        return back("passkey-gone")
+    return back("passkey-removed")
+
+
+def back(notice: str) -> Response:
+    response = redirect_response(civ().config.path("/account"))
+    return civ().set_cookie(response, NOTICE_COOKIE, notice, 60)
 
 
 def require_session() -> dict:
@@ -105,12 +128,12 @@ def page(session: dict, message: str | None, error: str | None) -> Response:
         revoke_url=auth.config.path("/account/apps/remove"),
         passkey_options_url=auth.config.path("/account/passkey/options"),
         passkey_verify_url=auth.config.path("/account/passkey/verify"),
-        passkey_done_url=auth.config.path("/account?added=passkey"),
+        passkey_done_url=auth.config.path("/account"),
         csrf=session["csrf"],
         message=message,
         error=error,
     )
-    return html_response(html, 200 if error is None else 400)
+    return html_response(html, 200)
 
 
 def owner(row: dict) -> str:

@@ -94,7 +94,8 @@ def add_verify() -> Response:
         now,
     )
     release(req)
-    return json_response({"ok": True})
+    response = json_response({"ok": True})
+    return auth.set_cookie(response, constants.NOTICE_COOKIE, "passkey-added", 60)
 
 
 @bp.post("/login/passkey/options")
