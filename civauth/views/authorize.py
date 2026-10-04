@@ -67,7 +67,7 @@ def authorize() -> Response:
 
     session = auth.session()
     if session is None:
-        return start(login_page(), params)
+        return start(login_page(params), params)
     return proceed(params, session)
 
 
@@ -103,11 +103,30 @@ def expired() -> Response:
     return civ().error_page("This login has expired", "", 400)
 
 
-def login_page(**fields: object) -> Response:
+def login_page(params: dict | None = None, **fields: object) -> Response:
+    if params is None:
+        req = pending()
+        params = {} if req is None else req["params"]
+    client = civ().client(params["client_id"]) if params.get("client_id") else None
     fields.setdefault("username", request.form.get("username", ""))
     return html_response(
-        render_template("login.html", address=civ().config.join_address, **fields)
+        render_template(
+            "login.html" if client is None else "login_card.html",
+            address=civ().config.join_address,
+            **app_fields(client),
+            **fields,
+        )
     )
+
+
+def app_fields(client: Client | None) -> dict:
+    if client is None:
+        return {"app_name": None, "owner_name": None}
+    owner = civ().store.account(client.owner_uuid) if client.owner_uuid else None
+    return {
+        "app_name": client.name,
+        "owner_name": None if owner is None else owner["name"],
+    }
 
 
 @bp.get("/login/minecraft")
@@ -166,7 +185,7 @@ def signed_in(params: dict, uuid: str, name: str) -> Response:
     elif params.get("client_id") is None:
         response = finish(redirect_response(auth.config.path("/account")))
     else:
-        response = proceed(params, session)
+        response = proceed(params, session, consented=True)
     return auth.set_session_cookie(response, token)
 
 
@@ -174,24 +193,19 @@ def finish(response: Response) -> Response:
     return civ().clear_cookie(response, constants.FLOW_COOKIE)
 
 
-def proceed(params: dict, session: dict) -> Response:
+def proceed(params: dict, session: dict, consented: bool = False) -> Response:
     auth = civ()
     client = auth.client(params["client_id"])
     if client is None:
         return finish(auth.error_page("Unknown site", "", 400))
-    if auth.store.grant(session["uuid"], client.client_id) is None:
-        return start(consent_page(client, session, params), params)
+    if not consented and auth.store.grant(session["uuid"], client.client_id) is None:
+        return start(consent_page(client, session), params)
     return finish(issue(params, session))
 
 
-def consent_page(client: Client, session: dict, params: dict) -> Response:
-    owner = civ().store.account(client.owner_uuid) if client.owner_uuid else None
+def consent_page(client: Client, session: dict) -> Response:
     html = render_template(
-        "consent.html",
-        app_name=client.name,
-        owner_name=None if owner is None else owner["name"],
-        account=session,
-        csrf=session["csrf"],
+        "consent.html", **app_fields(client), account=session, csrf=session["csrf"]
     )
     return html_response(html)
 
@@ -205,7 +219,7 @@ def decide() -> Response:
     session = auth.session()
     if session is None:
         auth.store.delete_request(req["id"])
-        return start(login_page(), params)
+        return start(login_page(params), params)
     csrf = request.form.get("csrf")
     if csrf is None or not secrets.compare_digest(session["csrf"], csrf):
         return auth.error_page("This form could not be verified", "", 400)
@@ -215,9 +229,23 @@ def decide() -> Response:
         return finish(issue(params, session))
     if decision == "switch":
         auth.store.delete_session(session["hash"])
-        return auth.clear_session_cookie(start(login_page(account=None), params))
+        return auth.clear_session_cookie(
+            start(login_page(params, account=None), params)
+        )
+    return declined(params)
+
+
+def cancel() -> Response:
+    req = pending()
+    if req is None or req["params"].get("client_id") is None:
+        return expired()
+    civ().store.delete_request(req["id"])
+    return declined(req["params"])
+
+
+def declined(params: dict) -> Response:
     return finish(
-        auth.redirect_error(
+        civ().redirect_error(
             params["redirect_uri"],
             "access_denied",
             "The user declined.",

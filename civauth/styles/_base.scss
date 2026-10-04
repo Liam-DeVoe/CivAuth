@@ -7,7 +7,11 @@ body {
 
 a {
   color: $link;
-  text-decoration: underline;
+  text-decoration: none;
+
+  &:where(:hover) {
+    text-decoration: underline;
+  }
 }
 
 table {

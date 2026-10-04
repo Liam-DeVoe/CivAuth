@@ -1,7 +1,7 @@
 from flask import Blueprint, Response, request
 
 from civauth import civ, redirect_response
-from civauth.views.authorize import decide, login_page, pending, start_login
+from civauth.views.authorize import cancel, decide, login_page, pending, start_login
 from civauth.views.join import verify_code
 from civauth.views.password import verify_password
 
@@ -31,4 +31,6 @@ def submit() -> Response:
         return verify_password()
     if method == "consent":
         return decide()
+    if method == "cancel":
+        return cancel()
     return verify_code()

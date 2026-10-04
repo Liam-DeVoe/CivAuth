@@ -19,6 +19,32 @@
     font-weight: 700;
   }
 
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  &__close {
+    padding: 0.35rem;
+    border: 0;
+    background: none;
+    cursor: pointer;
+
+    svg {
+      display: block;
+      width: 0.8rem;
+      height: 0.8rem;
+      stroke: $muted;
+      stroke-width: 1.6;
+    }
+
+    &:hover svg {
+      stroke: $text;
+    }
+  }
+
   &__actions {
     display: flex;
     justify-content: flex-end;
