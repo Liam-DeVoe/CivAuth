@@ -120,7 +120,7 @@ def page(session: dict, message: str | None, error: str | None) -> Response:
             {
                 "name": row["name"],
                 "client_id": row["client_id"],
-                "owner": owner(row),
+                "owner": row["owner_name"],
                 "used": added(row["used_at"]),
             }
             for row in grants
@@ -134,12 +134,6 @@ def page(session: dict, message: str | None, error: str | None) -> Response:
         error=error,
     )
     return html_response(html, 200)
-
-
-def owner(row: dict) -> str:
-    if not row["owner_uuid"]:
-        return "CivAuth"
-    return row["owner_name"] or hyphenated(row["owner_uuid"])
 
 
 def added(created_at: int) -> str:

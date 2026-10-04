@@ -9,6 +9,7 @@ KEYS = {
     "join_secret",
     "join_address",
     "database",
+    "owner_names",
 }
 
 
@@ -34,6 +35,13 @@ class Config:
             raise ValueError("join_secret must be at least 32 characters")
 
         self.database = _string(data, "database")
+
+        self.owner_names = data.get("owner_names", {})
+        if not isinstance(self.owner_names, dict) or not all(
+            isinstance(key, str) and isinstance(value, str) and value
+            for key, value in self.owner_names.items()
+        ):
+            raise ValueError
 
     @classmethod
     def from_module(cls, module: ModuleType) -> Self:

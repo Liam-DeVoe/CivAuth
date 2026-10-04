@@ -122,10 +122,10 @@ def login_page(params: dict | None = None, **fields: object) -> Response:
 def app_fields(client: Client | None) -> dict:
     if client is None:
         return {"app_name": None, "owner_name": None}
-    owner = civ().store.account(client.owner_uuid) if client.owner_uuid else None
+    owner_name = civ().config.owner_names.get(client.client_id)
     return {
         "app_name": client.name,
-        "owner_name": None if owner is None else owner["name"],
+        "owner_name": owner_name or civ().store.account(client.owner_uuid)["name"],
     }
 
 
