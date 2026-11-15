@@ -1,11 +1,8 @@
 {% extends "base.html" %}
-{% from "macros.html" import warning %}
+{% from "macros.html" import alternative_login with context %}
 {% block title %}Log in{% endblock %}
+{% block footer %}{{ alternative_login() }}{% endblock %}
 {% block body %}
-  {% set minecraft_warning %}
-    Logging in with Minecraft gives CivAuth certain temporary permissions on your account.
-    <a href="{{ url('/permissions') }}">Read more about the different authentication methods.</a>
-  {% endset %}
   <div class="title">Log in</div>
   <div class="split">
     <div class="split__half">
@@ -63,24 +60,7 @@
         </div>
         {% if join_error %}<div class="text text--error">{{ join_error }}</div>{% endif %}
         <div class="actions">
-          <div class="dropdown">
-            <button type="submit" class="button dropdown__main">Log in</button>
-            <details class="dropdown__more">
-              <summary class="button dropdown__toggle" title="Other ways to log in">
-                <svg viewBox="0 0 10 10" aria-hidden="true">
-                  <path d="M1 3l4 4 4-4z" />
-                </svg>
-              </summary>
-              <div class="dropdown__panel">
-                <div class="dropdown__title">Alternative login methods</div>
-                <div class="text">Log in with your Minecraft account through the web.</div>
-                {{ warning(minecraft_warning) }}
-                <div class="actions">
-                  <a class="button" href="{{ url('/login/minecraft') }}">Log in with Minecraft</a>
-                </div>
-              </div>
-            </details>
-          </div>
+          <button type="submit" class="button">Log in</button>
         </div>
       </form>
     </div>
@@ -100,7 +80,7 @@
                spellcheck="false"
                autocomplete="username webauthn"
                required>
-        <label class="field" for="password">Password</label>
+        <label class="field" for="password">CivAuth password</label>
         <input class="field__input"
                type="password"
                id="password"

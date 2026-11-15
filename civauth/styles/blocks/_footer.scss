@@ -1,0 +1,53 @@
+.footer {
+  max-width: var(--page);
+  margin: 0.8rem auto 0;
+  color: $muted;
+  font-size: 0.9rem;
+  text-align: center;
+
+  &__link,
+  &__toggle {
+    color: $muted;
+
+    &:hover {
+      color: $link;
+      text-decoration: underline;
+    }
+  }
+
+  &__sep {
+    margin: 0 0.5rem;
+  }
+
+  &__more {
+    position: relative;
+    display: inline-block;
+
+    &[open] .footer__toggle {
+      color: $link;
+      text-decoration: underline;
+    }
+
+    .dropdown__panel {
+      left: 50%;
+      transform: translateX(-50%);
+      color: $text;
+      font-size: 1rem;
+      text-align: left;
+    }
+  }
+
+  &__toggle {
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $focus;
+      outline-offset: 2px;
+    }
+  }
+}

@@ -102,6 +102,11 @@
     }
   }
 
+  &--fill {
+    flex: 1;
+    text-align: center;
+  }
+
   &--small {
     margin-top: 0.4rem;
     padding: 0.15rem 0.6rem;

@@ -54,3 +54,21 @@
     CivAuth
   </span>
 {%- endmacro -%}
+{% macro alternative_login(new_tab=False) -%}
+  <span class="footer__sep" aria-hidden="true">·</span>
+  <details class="footer__more">
+    <summary class="footer__toggle">Alternative login methods</summary>
+    <div class="dropdown__panel">
+      <div class="dropdown__title">Alternative login methods</div>
+      <div class="text">Log in with your Minecraft account through the web.</div>
+      {% set minecraft_warning %}
+        Logging in with Minecraft gives CivAuth certain temporary permissions on your account.
+        <a href="{{ url('/permissions') }}"{% if new_tab %} target="_blank" rel="noopener"{% endif %}>Read more about the different authentication methods.</a>
+      {% endset %}
+      {{ warning(minecraft_warning) }}
+      <div class="actions">
+        <a class="button" href="{{ url('/login/minecraft') }}">Log in with Minecraft</a>
+      </div>
+    </div>
+  </details>
+{%- endmacro -%}

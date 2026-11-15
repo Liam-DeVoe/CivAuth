@@ -1,6 +1,7 @@
 {% extends "card.html" %}
-{% from "macros.html" import app_request, brand, warning with context %}
+{% from "macros.html" import alternative_login, app_request, brand with context %}
 {% block title %}Log in to {{ app_name }}{% endblock %}
+{% block footer %}{{ alternative_login(new_tab=True) }}{% endblock %}
 {% block card %}
   {{ app_request(app_name, owner_name) }}
   <div class="consent__methods">
@@ -64,28 +65,7 @@
       </ol>
       {% if join_error %}<div class="text text--error">{{ join_error }}</div>{% endif %}
       <div class="actions">
-        <div class="dropdown dropdown--fill">
-          <button type="submit" class="button dropdown__main">Log in</button>
-          <details class="dropdown__more">
-            <summary class="button dropdown__toggle" title="Other ways to log in">
-              <svg viewBox="0 0 10 10" aria-hidden="true">
-                <path d="M1 3l4 4 4-4z" />
-              </svg>
-            </summary>
-            <div class="dropdown__panel">
-              <div class="dropdown__title">Alternative login methods</div>
-              <div class="text">Log in with your Minecraft account through the web.</div>
-              {% set minecraft_warning %}
-                Logging in with Minecraft gives CivAuth certain temporary permissions on your account.
-                <a href="{{ url('/permissions') }}" target="_blank" rel="noopener">Read more about the different authentication methods.</a>
-              {% endset %}
-              {{ warning(minecraft_warning) }}
-              <div class="actions">
-                <a class="button" href="{{ url('/login/minecraft') }}">Log in with Minecraft</a>
-              </div>
-            </div>
-          </details>
-        </div>
+        <button type="submit" class="button button--fill">Log in</button>
         <button type="button" class="button button--plain" id="existing-open">Existing account</button>
       </div>
     </form>
@@ -93,7 +73,7 @@
       <form method="post">
         <input type="hidden" name="method" value="password">
         <div class="dialog__head">
-          <div class="dialog__title">Log in to your account</div>
+          <div class="dialog__title">Log in to your CivAuth account</div>
           <button type="button" class="dialog__close" id="existing-close" aria-label="Close">
             <svg viewBox="0 0 10 10" aria-hidden="true">
               <path d="M1 1l8 8M9 1 1 9" />

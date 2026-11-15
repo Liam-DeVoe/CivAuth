@@ -56,9 +56,12 @@
         {% block body %}{% endblock %}
       </div>
     {% endblock %}
+    <div class="footer">
+      <a class="footer__link" href="{{ url('/docs') }}">Docs</a>{% block footer %}{% endblock %}
+    </div>
     <script nonce="{{ nonce }}">
       document.addEventListener("click", function (event) {
-        var open = document.querySelectorAll("details.menu[open], details.dropdown__more[open]");
+        var open = document.querySelectorAll("details.menu[open], details.footer__more[open]");
         for (var i = 0; i < open.length; i++) {
           if (!open[i].contains(event.target)) open[i].removeAttribute("open");
         }
