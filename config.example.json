@@ -1,0 +1,15 @@
+{
+  "issuer": "",
+
+  "microsoftClientId": "",
+  "microsoftClientSecret": "",
+
+  "joinSecret": "",
+  "joinAddress": "",
+
+  "database": "",
+
+  "ownerNames": {},
+
+  "trustProxy": 1
+}

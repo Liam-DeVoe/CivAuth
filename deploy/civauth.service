@@ -1,0 +1,25 @@
+[Unit]
+Description=CivAuth
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/civauth
+Environment=NODE_ENV=production
+Environment=CIVAUTH_CONFIG=/var/lib/civauth/config.json
+Environment=HOST=127.0.0.1
+Environment=PORT=8001
+Environment=HOME=/run/civauth
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RuntimeDirectory=civauth
+ReadWritePaths=/var/lib/civauth
+
+[Install]
+WantedBy=multi-user.target

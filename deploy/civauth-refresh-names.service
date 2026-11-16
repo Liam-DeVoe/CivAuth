@@ -1,0 +1,19 @@
+[Unit]
+Description=Refresh stored Minecraft usernames from Mojang
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/civauth
+Environment=CIVAUTH_CONFIG=/var/lib/civauth/config.json
+Environment=HOME=/run/civauth-refresh-names
+RuntimeDirectory=civauth-refresh-names
+ExecStart=/var/www/civauth/node_modules/.bin/tsx scripts/refresh-names.ts
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/civauth
