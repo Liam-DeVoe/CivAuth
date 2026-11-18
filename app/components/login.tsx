@@ -139,7 +139,7 @@ export function LoginCard({ app, address, errors }: { app: AppSummary; address: 
           <div className="consent__title">Verify your Minecraft account</div>
           <ol className="steps">
             <li className="steps__item">
-              Join this Minecraft server
+              Join the Minecraft server
               <Address address={address} />
             </li>
             <li className="steps__item">
@@ -152,8 +152,11 @@ export function LoginCard({ app, address, errors }: { app: AppSummary; address: 
             <button type="submit" className="button button--fill">
               Log in
             </button>
-            <button type="button" className="button button--plain" onClick={open}>
-              Existing account
+          </div>
+          <div className="consent__alt">
+            Already have a CivAuth account?{" "}
+            <button type="button" className="button button--quiet" onClick={open}>
+              Log in with password or passkey
             </button>
           </div>
         </Form>

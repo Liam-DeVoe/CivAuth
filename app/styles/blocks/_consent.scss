@@ -130,6 +130,17 @@
     }
   }
 
+  &__alt {
+    margin-top: 0.8rem;
+    color: $muted;
+    font-size: 0.9rem;
+
+    .button--quiet {
+      margin-top: 0;
+      font-size: inherit;
+    }
+  }
+
   &__title {
     font-size: 1.1rem;
     font-weight: 700;
