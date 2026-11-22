@@ -1,0 +1,20 @@
+[Unit]
+Description=CivAuth Minecraft join server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=civauth-join
+Group=civauth-join
+EnvironmentFile=/etc/civauth-join.env
+WorkingDirectory=/opt/civauth-join
+ExecStart=/usr/bin/node /opt/civauth-join/server.js
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
