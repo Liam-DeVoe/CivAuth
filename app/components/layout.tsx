@@ -18,10 +18,16 @@ export function Page({ footer, children }: { footer?: ReactNode; children: React
 export function Footer({ children }: { children?: ReactNode }) {
   return (
     <div className="footer">
+      {children}
       <Link className="footer__link" to="/docs">
         Docs
       </Link>
-      {children}
+      <span className="footer__sep" aria-hidden="true">
+        ·
+      </span>
+      <a className="footer__link" href="https://github.com/Liam-DeVoe/CivAuth" target="_blank" rel="noopener">
+        Source code
+      </a>
     </div>
   );
 }

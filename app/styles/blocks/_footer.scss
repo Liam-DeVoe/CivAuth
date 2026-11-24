@@ -1,4 +1,5 @@
 .footer {
+  position: relative;
   max-width: var(--page);
   margin: 0.8rem auto 0;
   color: $muted;
@@ -20,7 +21,6 @@
   }
 
   &__more {
-    position: relative;
     display: inline-block;
 
     &[open] .footer__toggle {

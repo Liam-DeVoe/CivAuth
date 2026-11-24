@@ -267,9 +267,6 @@ export function AlternativeLogin({ newTab = false }: { newTab?: boolean }) {
   const target = newTab ? { target: "_blank", rel: "noopener" } : {};
   return (
     <>
-      <span className="footer__sep" aria-hidden="true">
-        ·
-      </span>{" "}
       <Dropdown className="footer__more">
         <summary className="footer__toggle">Alternative login methods</summary>
         <div className="dropdown__panel">
@@ -288,6 +285,9 @@ export function AlternativeLogin({ newTab = false }: { newTab?: boolean }) {
           </div>
         </div>
       </Dropdown>
+      <span className="footer__sep" aria-hidden="true">
+        ·
+      </span>
     </>
   );
 }
